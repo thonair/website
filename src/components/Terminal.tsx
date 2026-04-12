@@ -243,7 +243,8 @@ const Terminal = () => {
     let i = 0;
     const bootTimer = setInterval(() => {
       if (i < BOOT_SEQUENCE.length) {
-        setLines((prev) => [...prev, BOOT_SEQUENCE[i]]);
+        const currentLine = BOOT_SEQUENCE[i];
+        setLines((prev) => [...prev, currentLine]);
         i++;
       } else {
         clearInterval(bootTimer);
