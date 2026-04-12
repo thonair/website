@@ -344,7 +344,9 @@ const Terminal = () => {
   };
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-background p-2 sm:p-4 md:p-8">
+    <div className="h-screen w-screen flex items-center justify-center bg-background p-2 sm:p-4 md:p-8 relative overflow-hidden">
+      {/* Matrix Rain background */}
+      <MatrixRain />
       {/* CRT Scanlines overlay */}
       <div className="crt-scanlines" />
 
