@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import MatrixRain from "./MatrixRain";
 
 type OutputLine = {
   text: string;
