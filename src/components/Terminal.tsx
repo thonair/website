@@ -66,6 +66,8 @@ function processCommand(cmd: string): OutputLine[] {
     lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
     lines.push({ text: "║  skills          → compétences techniques        ║", type: "output" });
     lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
+    lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
+    lines.push({ text: "║  status          → état des services             ║", type: "output" });
     lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
     lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
     lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
