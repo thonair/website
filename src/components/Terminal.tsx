@@ -26,7 +26,7 @@ const BOOT_SEQUENCE: OutputLine[] = [
   { text: "", type: "system" },
   { text: "  [████████████████████████████████████████████████] 100%", type: "highlight", delay: 600 },
   { text: "", type: "system" },
-  { text: "  ✓ System Ready. Bienvenue, Bera.", type: "highlight", delay: 300 },
+  { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
   { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
   { text: "", type: "system" },
 ];
