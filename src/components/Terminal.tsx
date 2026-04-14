@@ -18,7 +18,7 @@ const BOOT_SEQUENCE: OutputLine[] = [
   { text: "", type: "system" },
   { text: "  Booting CyberOS v3.1...", type: "system", delay: 400 },
   { text: "  Chargement des modules de cybersécurité .............. [OK]", type: "system", delay: 300 },
-  { text: "  Chargement du noyau musculation-hack-v3.1 ........... [OK]", type: "system", delay: 250 },
+  { text: "  Chargement du noyau security-core-v3.1 .............. [OK]", type: "system", delay: 250 },
   { text: "  Connexion à la matrice .............................. [OK]", type: "system", delay: 350 },
   { text: "  Initialisation du terminal de Bera .................. [OK]", type: "system", delay: 200 },
   { text: "  Vérification des pare-feux .......................... [OK]", type: "system", delay: 150 },
@@ -45,7 +45,7 @@ const FORTUNES = [
   "\"Hack the planet!\" - Hackers (1995)",
   "\"There is no patch for human stupidity.\" - Kevin Mitnick",
   "\"In the middle of difficulty lies opportunity.\" - Albert Einstein",
-  "\"La musculation c'est comme le hacking : consistance et discipline.\" 💪",
+  "\"Security is not a product, but a process.\" - Bruce Schneier",
   "\"Every expert was once a beginner.\"",
   "\"chmod 777 your_limits\"",
   "\"sudo rm -rf /doubts/*\"",
@@ -198,7 +198,7 @@ function processCommand(cmd: string): OutputLine[] {
     lines.push({ text: "        ██████████████      ─────────────", type: "ascii" });
     lines.push({ text: "       ████████████████     OS: CyberOS v3.1", type: "output" });
     lines.push({ text: "      ██████████████████    Host: ThonAir Terminal", type: "output" });
-    lines.push({ text: "     ████████████████████   Kernel: musculation-hack-v3.1", type: "output" });
+    lines.push({ text: "     ████████████████████   Kernel: security-core-v3.1", type: "output" });
     lines.push({ text: "      ██████████████████    Shell: bera-shell 1.0", type: "output" });
     lines.push({ text: "       ████████████████     Location: Bruxelles 🇧🇪", type: "output" });
     lines.push({ text: "        ██████████████      Uptime: always grinding", type: "output" });
