@@ -20,7 +20,7 @@ const BOOT_SEQUENCE: OutputLine[] = [
   { text: "  Chargement des modules de cybersécurité .............. [OK]", type: "system", delay: 300 },
   { text: "  Chargement du noyau security-core-v3.1 .............. [OK]", type: "system", delay: 250 },
   { text: "  Connexion à la matrice .............................. [OK]", type: "system", delay: 350 },
-  { text: "  Initialisation du terminal de Bera .................. [OK]", type: "system", delay: 200 },
+  { text: "  Initialisation du terminal sécurisé ................. [OK]", type: "system", delay: 200 },
   { text: "  Vérification des pare-feux .......................... [OK]", type: "system", delay: 150 },
   { text: "  Chargement des outils de pentest .................... [OK]", type: "system", delay: 200 },
   { text: "", type: "system" },
@@ -194,12 +194,12 @@ function processCommand(cmd: string): OutputLine[] {
     lines.push({ text: `  ${new Date().toLocaleString("fr-BE")}`, type: "output" });
   } else if (trimmed === "neofetch") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "         ▄▄▄▄▄▄▄▄▄▄▄       bera@cyberos", type: "ascii" });
+    lines.push({ text: "         ▄▄▄▄▄▄▄▄▄▄▄       mbt@cyberos", type: "ascii" });
     lines.push({ text: "        ██████████████      ─────────────", type: "ascii" });
     lines.push({ text: "       ████████████████     OS: CyberOS v3.1", type: "output" });
     lines.push({ text: "      ██████████████████    Host: ThonAir Terminal", type: "output" });
     lines.push({ text: "     ████████████████████   Kernel: security-core-v3.1", type: "output" });
-    lines.push({ text: "      ██████████████████    Shell: bera-shell 1.0", type: "output" });
+    lines.push({ text: "      ██████████████████    Shell: mbt-shell 1.0", type: "output" });
     lines.push({ text: "       ████████████████     Location: Bruxelles 🇧🇪", type: "output" });
     lines.push({ text: "        ██████████████      Uptime: always grinding", type: "output" });
     lines.push({ text: "         ▀▀▀▀▀▀▀▀▀▀▀       Languages: FR/EN/NL", type: "output" });
@@ -288,7 +288,7 @@ const Terminal = () => {
       // Add command line
       setLines((prev) => [
         ...prev,
-        { text: `bera@terminal:~$ ${cmd}`, type: "command" },
+        { text: `mbt@cyberos:~$ ${cmd}`, type: "command" },
       ]);
 
       const result = processCommand(cmd);
@@ -361,7 +361,7 @@ const Terminal = () => {
           </div>
           <div className="flex-1 text-center">
             <span className="text-sm text-muted-foreground font-mono">
-              Terminal — bera@cyberos
+              Terminal — mbt@cyberos
             </span>
           </div>
           <div className="w-16" />
@@ -388,7 +388,7 @@ const Terminal = () => {
           {booted && (
             <form onSubmit={handleSubmit} className="flex items-center mt-1">
               <span className="text-foreground text-glow whitespace-pre">
-                bera@terminal:~${" "}
+                mbt@cyberos:~${" "}
               </span>
               <div className="relative flex-1">
                 <input
