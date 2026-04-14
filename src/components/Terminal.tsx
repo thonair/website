@@ -187,6 +187,40 @@ function processCommand(cmd: string): OutputLine[] {
     lines.push({ text: "  📚  En cours de certification...", type: "system" });
     lines.push({ text: "  🏆  CTF Player actif", type: "output" });
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "infra") {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
+    lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
+    lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
+    lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
+    lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
+    lines.push({ text: "│  Proxmox VE  │  Hyperviseur — VMs & containers LXC           │", type: "output" });
+    lines.push({ text: "│  Synology    │  NAS — stockage, backups, partage fichiers     │", type: "output" });
+    lines.push({ text: "│  SearXNG     │  Moteur de recherche self-hosted & privé       │", type: "output" });
+    lines.push({ text: "│  Uptime Kuma │  Monitoring & alertes uptime des services      │", type: "output" });
+    lines.push({ text: "│  Homarr      │  Dashboard centralisé avec stats live          │", type: "output" });
+    lines.push({ text: "│  Cloudflare  │  Zero Trust — accès sécurisé & tunnels         │", type: "output" });
+    lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
+    lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
+    lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
+    lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed === "status") {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
+    lines.push({ text: "│                     ÉTAT DES SERVICES                         │", type: "highlight" });
+    lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
+    lines.push({ text: "│  home        │  ● EN LIGNE — home.thonair.com                │", type: "output" });
+    lines.push({ text: "│  files       │  ● EN LIGNE — files.thonair.com  🔒           │", type: "output" });
+    lines.push({ text: "│  nas         │  ● EN LIGNE — nas.thonair.com   🔒           │", type: "output" });
+    lines.push({ text: "│  pve         │  ● EN LIGNE — pve.thonair.com   🔒           │", type: "output" });
+    lines.push({ text: "│  search      │  ● EN LIGNE — search.thonair.com              │", type: "output" });
+    lines.push({ text: "│  stats       │  ● EN LIGNE — stats.thonair.com               │", type: "output" });
+    lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
+    lines.push({ text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                │", type: "system" });
+    lines.push({ text: "│  📊 Monitoring détaillé → stats.thonair.com                  │", type: "system" });
+    lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+    lines.push({ text: "", type: "output" });
   } else if (trimmed === "fortune") {
     const random = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
     lines.push({ text: "", type: "output" });
