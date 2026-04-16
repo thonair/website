@@ -70,7 +70,7 @@ const FORTUNES = [
   "\"sudo rm -rf /doubts/*\"",
 ];
 
-function processCommand(cmd: string): OutputLine[] {
+function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const trimmed = cmd.trim().toLowerCase();
   const lines: OutputLine[] = [];
 
