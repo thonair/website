@@ -119,15 +119,14 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Nom       : Mustafa Bera Tcholakov", type: "output" });
     lines.push({ text: "  Titre     : Étudiant en Cybersécurité", type: "output" });
-    lines.push({ text: "  Passion   : Tech, Réseau, Cloud & Muscu 💪", type: "output" });
+    lines.push({ text: "  Focus     : Sécurité offensive, réseau & cloud", type: "output" });
     lines.push({ text: "  Location  : 📍 Bruxelles, Belgique", type: "output" });
     lines.push({ text: "  Langues   : 🇫🇷 FR  |  🇬🇧 EN  |  🇳🇱 NL", type: "output" });
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Passionné par la sécurité informatique et le", type: "system" });
     lines.push({ text: "  hacking éthique. Toujours en quête de nouvelles", type: "system" });
     lines.push({ text: "  vulnérabilités à explorer et de systèmes à", type: "system" });
-    lines.push({ text: "  sécuriser. Quand je ne suis pas devant un", type: "system" });
-    lines.push({ text: "  terminal, vous me trouverez à la salle de sport.", type: "system" });
+    lines.push({ text: "  sécuriser, sur mon homelab comme sur le terrain.", type: "system" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat services" || trimmed === "cat services.txt") {
     lines.push({ text: "", type: "output" });
