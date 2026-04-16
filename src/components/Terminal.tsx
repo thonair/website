@@ -98,7 +98,8 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
     lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
     lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
-    lines.push({ text: "║  status          → état des services             ║", type: "output" });
+    lines.push({ text: "║  status          → état live des services        ║", type: "output" });
+    lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
     lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
     lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
     lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
