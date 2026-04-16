@@ -238,21 +238,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
-    lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│                     ÉTAT DES SERVICES                         │", type: "highlight" });
-    lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  home        │  ● EN LIGNE — home.thonair.com                │", type: "output" });
-    lines.push({ text: "│  files       │  ● EN LIGNE — files.thonair.com  🔒           │", type: "output" });
-    lines.push({ text: "│  nas         │  ● EN LIGNE — nas.thonair.com   🔒           │", type: "output" });
-    lines.push({ text: "│  pve         │  ● EN LIGNE — pve.thonair.com   🔒           │", type: "output" });
-    lines.push({ text: "│  search      │  ● EN LIGNE — search.thonair.com              │", type: "output" });
-    lines.push({ text: "│  stats       │  ● EN LIGNE — stats.thonair.com               │", type: "output" });
-    lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                │", type: "system" });
-    lines.push({ text: "│  📊 Monitoring détaillé → stats.thonair.com                  │", type: "system" });
-    lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
-    lines.push({ text: "", type: "output" });
+    lines.push({ text: "__STATUS_LIVE__", type: "system" });
   } else if (trimmed === "network" || trimmed === "net") {
     lines.push({ text: "", type: "output" });
     if (mobile) {
