@@ -357,7 +357,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "     ████████████████████   Kernel: security-core-v3.1", type: "output" });
     lines.push({ text: "      ██████████████████    Shell: mbt-shell 1.0", type: "output" });
     lines.push({ text: "       ████████████████     Location: Bruxelles 🇧🇪", type: "output" });
-    lines.push({ text: "        ██████████████      Uptime: always grinding", type: "output" });
+    lines.push({ text: "        ██████████████      Uptime: 24/7 self-hosted", type: "output" });
     lines.push({ text: "         ▀▀▀▀▀▀▀▀▀▀▀       Languages: FR/EN/NL", type: "output" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf") {
