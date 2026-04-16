@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MatrixRain from "./MatrixRain";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type OutputLine = {
   text: string;
@@ -7,14 +8,26 @@ type OutputLine = {
   delay?: number;
 };
 
-const BOOT_SEQUENCE: OutputLine[] = [
+const CYBEROS_ASCII_DESKTOP = [
+  "  ██████╗██╗   ██╗██████╗ ███████╗██████╗  ██████╗ ███████╗",
+  " ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██╔═══██╗██╔════╝",
+  " ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██║   ██║███████╗",
+  " ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██║   ██║╚════██║",
+  " ╚██████╗   ██║   ██████╔╝███████╗██║  ██║╚██████╔╝███████║",
+  "  ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝",
+];
+
+const CYBEROS_ASCII_MOBILE = [
+  "  ╔═╗╦ ╦╔╗ ╔═╗╦═╗╔═╗╔═╗",
+  "  ║  ╚╦╝╠╩╗║╣ ╠╦╝║ ║╚═╗",
+  "  ╚═╝ ╩ ╚═╝╚═╝╩╚═╚═╝╚═╝",
+];
+
+const buildBootSequence = (mobile: boolean): OutputLine[] => [
   { text: "", type: "system" },
-  { text: "  ██████╗██╗   ██╗██████╗ ███████╗██████╗  ██████╗ ███████╗", type: "ascii" },
-  { text: " ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗██╔═══██╗██╔════╝", type: "ascii" },
-  { text: " ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██║   ██║███████╗", type: "ascii" },
-  { text: " ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██║   ██║╚════██║", type: "ascii" },
-  { text: " ╚██████╗   ██║   ██████╔╝███████╗██║  ██║╚██████╔╝███████║", type: "ascii" },
-  { text: "  ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝", type: "ascii" },
+  ...(mobile ? CYBEROS_ASCII_MOBILE : CYBEROS_ASCII_DESKTOP).map(
+    (text) => ({ text, type: "ascii" as const })
+  ),
   { text: "", type: "system" },
   { text: "  Booting CyberOS v3.1...", type: "system", delay: 400 },
   { text: "  Chargement des modules de cybersécurité .............. [OK]", type: "system", delay: 300 },
