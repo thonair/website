@@ -456,11 +456,13 @@ const Terminal = () => {
       const result = processCommand(cmd, isMobile);
       if (result.length === 1 && result[0].text === "__CLEAR__") {
         setLines([]);
+      } else if (result.length === 1 && result[0].text === "__STATUS_LIVE__") {
+        runStatusCommand();
       } else {
         setLines((prev) => [...prev, ...result]);
       }
     },
-    [input, booted, isMobile]
+    [input, booted, isMobile, runStatusCommand]
   );
 
   const handleKeyDown = useCallback(
