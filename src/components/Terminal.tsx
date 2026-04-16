@@ -86,6 +86,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "║  skills          → compétences techniques        ║", type: "output" });
     lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
     lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
+    lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
     lines.push({ text: "║  status          → état des services             ║", type: "output" });
     lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
     lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
@@ -175,7 +176,8 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "banner") {
     lines.push({ text: "", type: "output" });
-    ASCII_BANNER.forEach((l) => lines.push({ text: l, type: "ascii" }));
+    const banner = mobile ? ASCII_BANNER_MOBILE : ASCII_BANNER_DESKTOP;
+    banner.forEach((l) => lines.push({ text: l, type: "ascii" }));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "        Cybersécurité • Réseau • Cloud", type: "highlight" });
     lines.push({ text: "           thonair.com | Bruxelles 🇧🇪", type: "system" });
