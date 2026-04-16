@@ -65,9 +65,20 @@ const FORTUNES = [
   "\"There is no patch for human stupidity.\" - Kevin Mitnick",
   "\"In the middle of difficulty lies opportunity.\" - Albert Einstein",
   "\"Security is not a product, but a process.\" - Bruce Schneier",
-  "\"Every expert was once a beginner.\"",
-  "\"chmod 777 your_limits\"",
-  "\"sudo rm -rf /doubts/*\"",
+  "\"Given enough eyeballs, all bugs are shallow.\" - Linus's Law",
+  "\"The only truly secure system is one that is powered off.\" - Gene Spafford",
+  "\"Privacy is not for the passive.\" - Jeffrey Rosen",
+  "\"It's not a bug, it's an undocumented feature.\"",
+  "\"There are 10 types of people: those who understand binary and those who don't.\"",
+];
+
+const SUBDOMAINS = [
+  { name: "home", host: "home.thonair.com", protected: false },
+  { name: "files", host: "files.thonair.com", protected: true },
+  { name: "nas", host: "nas.thonair.com", protected: true },
+  { name: "pve", host: "pve.thonair.com", protected: true },
+  { name: "search", host: "search.thonair.com", protected: false },
+  { name: "stats", host: "stats.thonair.com", protected: false },
 ];
 
 function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
@@ -87,7 +98,8 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
     lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
     lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
-    lines.push({ text: "║  status          → état des services             ║", type: "output" });
+    lines.push({ text: "║  status          → état live des services        ║", type: "output" });
+    lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
     lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
     lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
     lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
@@ -107,15 +119,14 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Nom       : Mustafa Bera Tcholakov", type: "output" });
     lines.push({ text: "  Titre     : Étudiant en Cybersécurité", type: "output" });
-    lines.push({ text: "  Passion   : Tech, Réseau, Cloud & Muscu 💪", type: "output" });
+    lines.push({ text: "  Focus     : Sécurité offensive, réseau & cloud", type: "output" });
     lines.push({ text: "  Location  : 📍 Bruxelles, Belgique", type: "output" });
     lines.push({ text: "  Langues   : 🇫🇷 FR  |  🇬🇧 EN  |  🇳🇱 NL", type: "output" });
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Passionné par la sécurité informatique et le", type: "system" });
     lines.push({ text: "  hacking éthique. Toujours en quête de nouvelles", type: "system" });
     lines.push({ text: "  vulnérabilités à explorer et de systèmes à", type: "system" });
-    lines.push({ text: "  sécuriser. Quand je ne suis pas devant un", type: "system" });
-    lines.push({ text: "  terminal, vous me trouverez à la salle de sport.", type: "system" });
+    lines.push({ text: "  sécuriser, sur mon homelab comme sur le terrain.", type: "system" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat services" || trimmed === "cat services.txt") {
     lines.push({ text: "", type: "output" });
@@ -172,7 +183,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  bera@cyberos — Mustafa Bera Tcholakov", type: "highlight" });
     lines.push({ text: "  Étudiant en cybersécurité | Bruxelles 🇧🇪", type: "output" });
-    lines.push({ text: "  Passionné de tech, réseau, cloud & muscu 💪", type: "output" });
+    lines.push({ text: "  Sécurité offensive • Réseau • Cloud • Self-host", type: "output" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "banner") {
     lines.push({ text: "", type: "output" });
@@ -193,10 +204,10 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "  Cloud       ████████████████░░░░░░  70%", type: "output" });
     lines.push({ text: "  Linux       ██████████████████░░░░  80%", type: "output" });
     lines.push({ text: "  Scripting   ████████████████░░░░░░  70%", type: "output" });
-    lines.push({ text: "  Muscu       ████████████████████████ 100% 💪", type: "highlight" });
+    lines.push({ text: "  Self-host   ██████████████████░░░░  80%", type: "output" });
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Outils: Kali Linux, Metasploit, Burp Suite,", type: "system" });
-    lines.push({ text: "  Wireshark, Nmap, Azure, AWS, Docker", type: "system" });
+    lines.push({ text: "  Wireshark, Nmap, Azure, AWS, Docker, Proxmox", type: "system" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "certifications" || trimmed === "certs") {
     lines.push({ text: "", type: "output" });
@@ -227,21 +238,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
-    lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│                     ÉTAT DES SERVICES                         │", type: "highlight" });
-    lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  home        │  ● EN LIGNE — home.thonair.com                │", type: "output" });
-    lines.push({ text: "│  files       │  ● EN LIGNE — files.thonair.com  🔒           │", type: "output" });
-    lines.push({ text: "│  nas         │  ● EN LIGNE — nas.thonair.com   🔒           │", type: "output" });
-    lines.push({ text: "│  pve         │  ● EN LIGNE — pve.thonair.com   🔒           │", type: "output" });
-    lines.push({ text: "│  search      │  ● EN LIGNE — search.thonair.com              │", type: "output" });
-    lines.push({ text: "│  stats       │  ● EN LIGNE — stats.thonair.com               │", type: "output" });
-    lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                │", type: "system" });
-    lines.push({ text: "│  📊 Monitoring détaillé → stats.thonair.com                  │", type: "system" });
-    lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
-    lines.push({ text: "", type: "output" });
+    lines.push({ text: "__STATUS_LIVE__", type: "system" });
   } else if (trimmed === "network" || trimmed === "net") {
     lines.push({ text: "", type: "output" });
     if (mobile) {
@@ -314,10 +311,41 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "  📡 Aucun port direct ouvert vers Internet — tunnel sortant only", type: "system" });
     }
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "fortune") {
     const random = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
     lines.push({ text: "", type: "output" });
     lines.push({ text: `  ${random}`, type: "highlight" });
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "ping" || trimmed.startsWith("ping ")) {
+    const arg = trimmed === "ping" ? "" : trimmed.slice(5).trim();
+    const targets = arg
+      ? SUBDOMAINS.filter(
+          (s) => s.name === arg || s.host === arg || arg === s.host.split(".")[0],
+        )
+      : SUBDOMAINS;
+    lines.push({ text: "", type: "output" });
+    if (targets.length === 0) {
+      lines.push({ text: `  ping: ${arg}: hôte inconnu`, type: "error" });
+      lines.push({ text: `  Cibles disponibles: ${SUBDOMAINS.map((s) => s.name).join(", ")}`, type: "system" });
+      lines.push({ text: "", type: "output" });
+    } else {
+      targets.forEach((t) => {
+        const seq = Math.floor(Math.random() * 4) + 3;
+        const lat = (Math.random() * 30 + 8).toFixed(1);
+        const ttl = 50 + Math.floor(Math.random() * 14);
+        lines.push({
+          text: `  64 bytes from ${t.host}: icmp_seq=${seq} ttl=${ttl} time=${lat} ms ${t.protected ? "🔒" : ""}`,
+          type: "output",
+        });
+      });
+      const avg = (Math.random() * 25 + 10).toFixed(2);
+      lines.push({ text: "", type: "output" });
+      lines.push({
+        text: `  --- ping statistics --- ${targets.length} packets transmitted, ${targets.length} received, 0% loss, avg ${avg} ms`,
+        type: "system",
+      });
+      lines.push({ text: "", type: "output" });
+    }
   } else if (trimmed === "date") {
     lines.push({ text: `  ${new Date().toLocaleString("fr-BE")}`, type: "output" });
   } else if (trimmed === "neofetch") {
@@ -329,7 +357,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "     ████████████████████   Kernel: security-core-v3.1", type: "output" });
     lines.push({ text: "      ██████████████████    Shell: mbt-shell 1.0", type: "output" });
     lines.push({ text: "       ████████████████     Location: Bruxelles 🇧🇪", type: "output" });
-    lines.push({ text: "        ██████████████      Uptime: always grinding", type: "output" });
+    lines.push({ text: "        ██████████████      Uptime: 24/7 self-hosted", type: "output" });
     lines.push({ text: "         ▀▀▀▀▀▀▀▀▀▀▀       Languages: FR/EN/NL", type: "output" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf") {
@@ -406,6 +434,119 @@ const Terminal = () => {
     if (booted) inputRef.current?.focus();
   }, [booted]);
 
+  const runStatusCommand = useCallback(async () => {
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      { text: "  ⏳ Interrogation de stats.thonair.com (Uptime Kuma)...", type: "system" },
+    ]);
+
+    type Row = { name: string; host: string; up: boolean | null; protected: boolean; uptime?: number };
+    const rows: Row[] = SUBDOMAINS.map((s) => ({ ...s, up: null }));
+    let liveSource: "kuma" | "fallback" = "fallback";
+
+    try {
+      const slugs = ["thonair", "default", "status"];
+      let heartbeat: any = null;
+      for (const slug of slugs) {
+        try {
+          const res = await fetch(
+            `https://stats.thonair.com/api/status-page/heartbeat/${slug}`,
+            { cache: "no-store" },
+          );
+          if (res.ok) {
+            heartbeat = await res.json();
+            liveSource = "kuma";
+            break;
+          }
+        } catch {
+          /* try next slug */
+        }
+      }
+
+      if (heartbeat?.heartbeatList) {
+        const uptimeList = heartbeat.uptimeList ?? {};
+        Object.values(heartbeat.heartbeatList).forEach((arr: any) => {
+          if (!Array.isArray(arr) || arr.length === 0) return;
+          const last = arr[arr.length - 1];
+          const monitorName: string = String(last?.name || last?.monitor_name || "").toLowerCase();
+          rows.forEach((r) => {
+            if (monitorName.includes(r.name) || monitorName.includes(r.host)) {
+              r.up = last?.status === 1;
+            }
+          });
+        });
+        Object.entries(uptimeList).forEach(([key, val]) => {
+          const k = String(key).toLowerCase();
+          rows.forEach((r) => {
+            if (k.includes(r.name) || k.includes(r.host)) {
+              r.uptime = typeof val === "number" ? val * 100 : undefined;
+            }
+          });
+        });
+      }
+    } catch {
+      liveSource = "fallback";
+    }
+
+    if (liveSource === "fallback") {
+      await Promise.all(
+        rows.map(async (r) => {
+          try {
+            await fetch(`https://${r.host}/favicon.ico`, {
+              mode: "no-cors",
+              cache: "no-store",
+            });
+            r.up = true;
+          } catch {
+            r.up = null;
+          }
+        }),
+      );
+    }
+
+    const pad = (s: string, n: number) => s + " ".repeat(Math.max(0, n - s.length));
+    const fmtRow = (r: Row) => {
+      const dot = r.up === true ? "●" : r.up === false ? "✕" : "○";
+      const label = r.up === true ? "EN LIGNE" : r.up === false ? "DOWN    " : "INCONNU ";
+      const lock = r.protected ? "🔒" : "  ";
+      const upt = r.uptime !== undefined ? `${r.uptime.toFixed(2)}%` : "  —   ";
+      return `│  ${pad(r.name, 8)}  │  ${dot} ${label} — ${pad(r.host, 22)} ${lock}  │  ${pad(upt, 7)} │`;
+    };
+
+    const output: OutputLine[] = [
+      { text: "", type: "output" },
+      { text: "┌────────────────────────────────────────────────────────────────────┐", type: "highlight" },
+      { text: "│                      ÉTAT LIVE DES SERVICES                        │", type: "highlight" },
+      { text: "├────────────┬─────────────────────────────────────────┬─────────────┤", type: "highlight" },
+      { text: "│  SERVICE   │  ÉTAT                                    │   UPTIME    │", type: "highlight" },
+      { text: "├────────────┼─────────────────────────────────────────┼─────────────┤", type: "highlight" },
+      ...rows.map((r) => ({ text: fmtRow(r), type: "output" as const })),
+      { text: "├────────────┴─────────────────────────────────────────┴─────────────┤", type: "highlight" },
+      {
+        text:
+          liveSource === "kuma"
+            ? "│  📡 Source: Uptime Kuma — stats.thonair.com (live)                 │"
+            : "│  ⚠ Uptime Kuma indisponible — sondage navigateur best-effort      │",
+        type: "system",
+      },
+      { text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                      │", type: "system" },
+      { text: "└────────────────────────────────────────────────────────────────────┘", type: "highlight" },
+      { text: "", type: "output" },
+    ];
+
+    setLines((prev) => {
+      const next = [...prev];
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].text.startsWith("  ⏳ Interrogation")) {
+          next.splice(i - 1, 2);
+          break;
+        }
+      }
+      return [...next, ...output];
+    });
+  }, []);
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -428,11 +569,13 @@ const Terminal = () => {
       const result = processCommand(cmd, isMobile);
       if (result.length === 1 && result[0].text === "__CLEAR__") {
         setLines([]);
+      } else if (result.length === 1 && result[0].text === "__STATUS_LIVE__") {
+        runStatusCommand();
       } else {
         setLines((prev) => [...prev, ...result]);
       }
     },
-    [input, booted, isMobile]
+    [input, booted, isMobile, runStatusCommand]
   );
 
   const handleKeyDown = useCallback(
