@@ -65,9 +65,20 @@ const FORTUNES = [
   "\"There is no patch for human stupidity.\" - Kevin Mitnick",
   "\"In the middle of difficulty lies opportunity.\" - Albert Einstein",
   "\"Security is not a product, but a process.\" - Bruce Schneier",
-  "\"Every expert was once a beginner.\"",
-  "\"chmod 777 your_limits\"",
-  "\"sudo rm -rf /doubts/*\"",
+  "\"Given enough eyeballs, all bugs are shallow.\" - Linus's Law",
+  "\"The only truly secure system is one that is powered off.\" - Gene Spafford",
+  "\"Privacy is not for the passive.\" - Jeffrey Rosen",
+  "\"It's not a bug, it's an undocumented feature.\"",
+  "\"There are 10 types of people: those who understand binary and those who don't.\"",
+];
+
+const SUBDOMAINS = [
+  { name: "home", host: "home.thonair.com", protected: false },
+  { name: "files", host: "files.thonair.com", protected: true },
+  { name: "nas", host: "nas.thonair.com", protected: true },
+  { name: "pve", host: "pve.thonair.com", protected: true },
+  { name: "search", host: "search.thonair.com", protected: false },
+  { name: "stats", host: "stats.thonair.com", protected: false },
 ];
 
 function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
