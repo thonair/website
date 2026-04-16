@@ -204,10 +204,10 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "  Cloud       ████████████████░░░░░░  70%", type: "output" });
     lines.push({ text: "  Linux       ██████████████████░░░░  80%", type: "output" });
     lines.push({ text: "  Scripting   ████████████████░░░░░░  70%", type: "output" });
-    lines.push({ text: "  Muscu       ████████████████████████ 100% 💪", type: "highlight" });
+    lines.push({ text: "  Self-host   ██████████████████░░░░  80%", type: "output" });
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Outils: Kali Linux, Metasploit, Burp Suite,", type: "system" });
-    lines.push({ text: "  Wireshark, Nmap, Azure, AWS, Docker", type: "system" });
+    lines.push({ text: "  Wireshark, Nmap, Azure, AWS, Docker, Proxmox", type: "system" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "certifications" || trimmed === "certs") {
     lines.push({ text: "", type: "output" });
