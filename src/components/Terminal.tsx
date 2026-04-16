@@ -434,6 +434,119 @@ const Terminal = () => {
     if (booted) inputRef.current?.focus();
   }, [booted]);
 
+  const runStatusCommand = useCallback(async () => {
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      { text: "  ⏳ Interrogation de stats.thonair.com (Uptime Kuma)...", type: "system" },
+    ]);
+
+    type Row = { name: string; host: string; up: boolean | null; protected: boolean; uptime?: number };
+    const rows: Row[] = SUBDOMAINS.map((s) => ({ ...s, up: null }));
+    let liveSource: "kuma" | "fallback" = "fallback";
+
+    try {
+      const slugs = ["thonair", "default", "status"];
+      let heartbeat: any = null;
+      for (const slug of slugs) {
+        try {
+          const res = await fetch(
+            `https://stats.thonair.com/api/status-page/heartbeat/${slug}`,
+            { cache: "no-store" },
+          );
+          if (res.ok) {
+            heartbeat = await res.json();
+            liveSource = "kuma";
+            break;
+          }
+        } catch {
+          /* try next slug */
+        }
+      }
+
+      if (heartbeat?.heartbeatList) {
+        const uptimeList = heartbeat.uptimeList ?? {};
+        Object.values(heartbeat.heartbeatList).forEach((arr: any) => {
+          if (!Array.isArray(arr) || arr.length === 0) return;
+          const last = arr[arr.length - 1];
+          const monitorName: string = String(last?.name || last?.monitor_name || "").toLowerCase();
+          rows.forEach((r) => {
+            if (monitorName.includes(r.name) || monitorName.includes(r.host)) {
+              r.up = last?.status === 1;
+            }
+          });
+        });
+        Object.entries(uptimeList).forEach(([key, val]) => {
+          const k = String(key).toLowerCase();
+          rows.forEach((r) => {
+            if (k.includes(r.name) || k.includes(r.host)) {
+              r.uptime = typeof val === "number" ? val * 100 : undefined;
+            }
+          });
+        });
+      }
+    } catch {
+      liveSource = "fallback";
+    }
+
+    if (liveSource === "fallback") {
+      await Promise.all(
+        rows.map(async (r) => {
+          try {
+            await fetch(`https://${r.host}/favicon.ico`, {
+              mode: "no-cors",
+              cache: "no-store",
+            });
+            r.up = true;
+          } catch {
+            r.up = null;
+          }
+        }),
+      );
+    }
+
+    const pad = (s: string, n: number) => s + " ".repeat(Math.max(0, n - s.length));
+    const fmtRow = (r: Row) => {
+      const dot = r.up === true ? "●" : r.up === false ? "✕" : "○";
+      const label = r.up === true ? "EN LIGNE" : r.up === false ? "DOWN    " : "INCONNU ";
+      const lock = r.protected ? "🔒" : "  ";
+      const upt = r.uptime !== undefined ? `${r.uptime.toFixed(2)}%` : "  —   ";
+      return `│  ${pad(r.name, 8)}  │  ${dot} ${label} — ${pad(r.host, 22)} ${lock}  │  ${pad(upt, 7)} │`;
+    };
+
+    const output: OutputLine[] = [
+      { text: "", type: "output" },
+      { text: "┌────────────────────────────────────────────────────────────────────┐", type: "highlight" },
+      { text: "│                      ÉTAT LIVE DES SERVICES                        │", type: "highlight" },
+      { text: "├────────────┬─────────────────────────────────────────┬─────────────┤", type: "highlight" },
+      { text: "│  SERVICE   │  ÉTAT                                    │   UPTIME    │", type: "highlight" },
+      { text: "├────────────┼─────────────────────────────────────────┼─────────────┤", type: "highlight" },
+      ...rows.map((r) => ({ text: fmtRow(r), type: "output" as const })),
+      { text: "├────────────┴─────────────────────────────────────────┴─────────────┤", type: "highlight" },
+      {
+        text:
+          liveSource === "kuma"
+            ? "│  📡 Source: Uptime Kuma — stats.thonair.com (live)                 │"
+            : "│  ⚠ Uptime Kuma indisponible — sondage navigateur best-effort      │",
+        type: "system",
+      },
+      { text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                      │", type: "system" },
+      { text: "└────────────────────────────────────────────────────────────────────┘", type: "highlight" },
+      { text: "", type: "output" },
+    ];
+
+    setLines((prev) => {
+      const next = [...prev];
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].text.startsWith("  ⏳ Interrogation")) {
+          next.splice(i - 1, 2);
+          break;
+        }
+      }
+      return [...next, ...output];
+    });
+  }, []);
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
