@@ -432,7 +432,7 @@ const Terminal = () => {
         setLines((prev) => [...prev, ...result]);
       }
     },
-    [input, booted]
+    [input, booted, isMobile]
   );
 
   const handleKeyDown = useCallback(
