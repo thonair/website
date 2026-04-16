@@ -242,7 +242,78 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "│  📊 Monitoring détaillé → stats.thonair.com                  │", type: "system" });
     lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
     lines.push({ text: "", type: "output" });
-  } else if (trimmed === "fortune") {
+  } else if (trimmed === "network" || trimmed === "net") {
+    lines.push({ text: "", type: "output" });
+    if (mobile) {
+      lines.push({ text: "  ┌─────────────────────┐", type: "highlight" });
+      lines.push({ text: "  │  ARCHITECTURE NET   │", type: "highlight" });
+      lines.push({ text: "  └─────────────────────┘", type: "highlight" });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "      🌍 Internet", type: "output" });
+      lines.push({ text: "          │", type: "system" });
+      lines.push({ text: "          ▼", type: "system" });
+      lines.push({ text: "  ┌──────────────┐", type: "output" });
+      lines.push({ text: "  │ ☁ Cloudflare │", type: "highlight" });
+      lines.push({ text: "  │  Zero Trust  │", type: "system" });
+      lines.push({ text: "  └──────┬───────┘", type: "output" });
+      lines.push({ text: "         │ tunnel", type: "system" });
+      lines.push({ text: "         ▼", type: "system" });
+      lines.push({ text: "  ┌──────────────┐", type: "output" });
+      lines.push({ text: "  │ 🖥 Proxmox VE │", type: "highlight" });
+      lines.push({ text: "  └──┬────────┬──┘", type: "output" });
+      lines.push({ text: "     │        │", type: "system" });
+      lines.push({ text: "     ▼        ▼", type: "system" });
+      lines.push({ text: "   VMs       LXCs", type: "output" });
+      lines.push({ text: "     │        │", type: "system" });
+      lines.push({ text: "     └────┬───┘", type: "system" });
+      lines.push({ text: "          ▼", type: "system" });
+      lines.push({ text: "  ┌──────────────┐", type: "output" });
+      lines.push({ text: "  │  SERVICES    │", type: "highlight" });
+      lines.push({ text: "  ├──────────────┤", type: "output" });
+      lines.push({ text: "  │ • SearXNG    │", type: "output" });
+      lines.push({ text: "  │ • Uptime Kuma│", type: "output" });
+      lines.push({ text: "  │ • Homarr     │", type: "output" });
+      lines.push({ text: "  │ • Synology   │", type: "output" });
+      lines.push({ text: "  └──────────────┘", type: "output" });
+    } else {
+      lines.push({ text: "┌────────────────────────────────────────────────────────────────┐", type: "highlight" });
+      lines.push({ text: "│                  ARCHITECTURE RÉSEAU — THONAIR                 │", type: "highlight" });
+      lines.push({ text: "└────────────────────────────────────────────────────────────────┘", type: "highlight" });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "                          🌍  Internet", type: "output" });
+      lines.push({ text: "                              │", type: "system" });
+      lines.push({ text: "                              ▼", type: "system" });
+      lines.push({ text: "                ┌───────────────────────────┐", type: "output" });
+      lines.push({ text: "                │   ☁  Cloudflare DNS/CDN   │", type: "highlight" });
+      lines.push({ text: "                │      Zero Trust Tunnel    │", type: "system" });
+      lines.push({ text: "                └─────────────┬─────────────┘", type: "output" });
+      lines.push({ text: "                              │ HTTPS / cloudflared", type: "system" });
+      lines.push({ text: "                              ▼", type: "system" });
+      lines.push({ text: "                ┌───────────────────────────┐", type: "output" });
+      lines.push({ text: "                │   🖥  Proxmox VE (host)   │", type: "highlight" });
+      lines.push({ text: "                │     Hyperviseur — KVM      │", type: "system" });
+      lines.push({ text: "                └──────┬─────────────┬──────┘", type: "output" });
+      lines.push({ text: "                       │             │", type: "system" });
+      lines.push({ text: "             ┌─────────┘             └─────────┐", type: "system" });
+      lines.push({ text: "             ▼                                  ▼", type: "system" });
+      lines.push({ text: "      ┌─────────────┐                    ┌─────────────┐", type: "output" });
+      lines.push({ text: "      │  VMs        │                    │  LXCs       │", type: "highlight" });
+      lines.push({ text: "      │  (KVM)      │                    │ (containers)│", type: "system" });
+      lines.push({ text: "      └──────┬──────┘                    └──────┬──────┘", type: "output" });
+      lines.push({ text: "             │                                  │", type: "system" });
+      lines.push({ text: "             └────────────────┬─────────────────┘", type: "system" });
+      lines.push({ text: "                              ▼", type: "system" });
+      lines.push({ text: "  ┌──────────────────────────────────────────────────────────────┐", type: "output" });
+      lines.push({ text: "  │                       SERVICES SELF-HOSTED                    │", type: "highlight" });
+      lines.push({ text: "  ├──────────────┬──────────────┬──────────────┬─────────────────┤", type: "output" });
+      lines.push({ text: "  │  SearXNG     │  Uptime Kuma │   Homarr     │   Synology NAS  │", type: "output" });
+      lines.push({ text: "  │  (search)    │  (monitoring)│  (dashboard) │   (storage)     │", type: "system" });
+      lines.push({ text: "  └──────────────┴──────────────┴──────────────┴─────────────────┘", type: "output" });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "  🔒 Tout le trafic externe transite par Cloudflare Zero Trust", type: "system" });
+      lines.push({ text: "  📡 Aucun port direct ouvert vers Internet — tunnel sortant only", type: "system" });
+    }
+    lines.push({ text: "", type: "output" });
     const random = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
     lines.push({ text: "", type: "output" });
     lines.push({ text: `  ${random}`, type: "highlight" });
@@ -287,6 +358,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
 }
 
 const Terminal = () => {
+  const isMobile = useIsMobile();
   const [lines, setLines] = useState<OutputLine[]>([]);
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
@@ -296,12 +368,17 @@ const Terminal = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const bootSequence = useMemo(() => buildBootSequence(isMobile), [isMobile]);
+
   // Boot sequence
   useEffect(() => {
     let i = 0;
+    setLines([]);
+    setBooted(false);
+    setBooting(true);
     const bootTimer = setInterval(() => {
-      if (i < BOOT_SEQUENCE.length) {
-        const currentLine = BOOT_SEQUENCE[i];
+      if (i < bootSequence.length) {
+        const currentLine = bootSequence[i];
         setLines((prev) => [...prev, currentLine]);
         i++;
       } else {
@@ -311,7 +388,7 @@ const Terminal = () => {
       }
     }, 80);
     return () => clearInterval(bootTimer);
-  }, []);
+  }, [bootSequence]);
 
   // Auto scroll
   useEffect(() => {
@@ -348,7 +425,7 @@ const Terminal = () => {
         { text: `mbt@cyberos:~$ ${cmd}`, type: "command" },
       ]);
 
-      const result = processCommand(cmd);
+      const result = processCommand(cmd, isMobile);
       if (result.length === 1 && result[0].text === "__CLEAR__") {
         setLines([]);
       } else {
