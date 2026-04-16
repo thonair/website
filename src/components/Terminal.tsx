@@ -311,10 +311,41 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "  📡 Aucun port direct ouvert vers Internet — tunnel sortant only", type: "system" });
     }
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "fortune") {
     const random = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
     lines.push({ text: "", type: "output" });
     lines.push({ text: `  ${random}`, type: "highlight" });
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "ping" || trimmed.startsWith("ping ")) {
+    const arg = trimmed === "ping" ? "" : trimmed.slice(5).trim();
+    const targets = arg
+      ? SUBDOMAINS.filter(
+          (s) => s.name === arg || s.host === arg || arg === s.host.split(".")[0],
+        )
+      : SUBDOMAINS;
+    lines.push({ text: "", type: "output" });
+    if (targets.length === 0) {
+      lines.push({ text: `  ping: ${arg}: hôte inconnu`, type: "error" });
+      lines.push({ text: `  Cibles disponibles: ${SUBDOMAINS.map((s) => s.name).join(", ")}`, type: "system" });
+      lines.push({ text: "", type: "output" });
+    } else {
+      targets.forEach((t) => {
+        const seq = Math.floor(Math.random() * 4) + 3;
+        const lat = (Math.random() * 30 + 8).toFixed(1);
+        const ttl = 50 + Math.floor(Math.random() * 14);
+        lines.push({
+          text: `  64 bytes from ${t.host}: icmp_seq=${seq} ttl=${ttl} time=${lat} ms ${t.protected ? "🔒" : ""}`,
+          type: "output",
+        });
+      });
+      const avg = (Math.random() * 25 + 10).toFixed(2);
+      lines.push({ text: "", type: "output" });
+      lines.push({
+        text: `  --- ping statistics --- ${targets.length} packets transmitted, ${targets.length} received, 0% loss, avg ${avg} ms`,
+        type: "system",
+      });
+      lines.push({ text: "", type: "output" });
+    }
   } else if (trimmed === "date") {
     lines.push({ text: `  ${new Date().toLocaleString("fr-BE")}`, type: "output" });
   } else if (trimmed === "neofetch") {
