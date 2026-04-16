@@ -183,7 +183,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  bera@cyberos — Mustafa Bera Tcholakov", type: "highlight" });
     lines.push({ text: "  Étudiant en cybersécurité | Bruxelles 🇧🇪", type: "output" });
-    lines.push({ text: "  Passionné de tech, réseau, cloud & muscu 💪", type: "output" });
+    lines.push({ text: "  Sécurité offensive • Réseau • Cloud • Self-host", type: "output" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "banner") {
     lines.push({ text: "", type: "output" });
