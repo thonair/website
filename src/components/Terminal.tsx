@@ -24,26 +24,33 @@ const CYBEROS_ASCII_MOBILE = [
   "  ╚═╝ ╩ ╚═╝╚═╝╩╚═╚═╝╚═╝",
 ];
 
-const buildBootSequence = (mobile: boolean): OutputLine[] => [
-  { text: "", type: "system" },
-  ...(mobile ? CYBEROS_ASCII_MOBILE : CYBEROS_ASCII_DESKTOP).map(
-    (text) => ({ text, type: "ascii" as const })
-  ),
-  { text: "", type: "system" },
-  { text: "  Booting CyberOS v3.1...", type: "system", delay: 400 },
-  { text: "  Chargement des modules de cybersécurité .............. [OK]", type: "system", delay: 300 },
-  { text: "  Chargement du noyau security-core-v3.1 .............. [OK]", type: "system", delay: 250 },
-  { text: "  Connexion à la matrice .............................. [OK]", type: "system", delay: 350 },
-  { text: "  Initialisation du terminal sécurisé ................. [OK]", type: "system", delay: 200 },
-  { text: "  Vérification des pare-feux .......................... [OK]", type: "system", delay: 150 },
-  { text: "  Chargement des outils de pentest .................... [OK]", type: "system", delay: 200 },
-  { text: "", type: "system" },
-  { text: "__PROGRESS__", type: "highlight", delay: 600 },
-  { text: "", type: "system" },
-  { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
-  { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
-  { text: "", type: "system" },
-];
+const buildBootSequence = (mobile: boolean): OutputLine[] => {
+  const dot = (label: string, total: number) => {
+    const pad = Math.max(3, total - label.length - 4);
+    return `  ${label} ${".".repeat(pad)} [OK]`;
+  };
+  const width = mobile ? 28 : 56;
+  return [
+    { text: "", type: "system" },
+    ...(mobile ? CYBEROS_ASCII_MOBILE : CYBEROS_ASCII_DESKTOP).map(
+      (text) => ({ text, type: "ascii" as const })
+    ),
+    { text: "", type: "system" },
+    { text: "  Booting CyberOS v3.1...", type: "system", delay: 400 },
+    { text: dot(mobile ? "Modules sécurité" : "Chargement des modules de cybersécurité", width), type: "system", delay: 300 },
+    { text: dot(mobile ? "Noyau v3.1" : "Chargement du noyau security-core-v3.1", width), type: "system", delay: 250 },
+    { text: dot(mobile ? "Matrice" : "Connexion à la matrice", width), type: "system", delay: 350 },
+    { text: dot(mobile ? "Terminal sécurisé" : "Initialisation du terminal sécurisé", width), type: "system", delay: 200 },
+    { text: dot(mobile ? "Pare-feux" : "Vérification des pare-feux", width), type: "system", delay: 150 },
+    { text: dot(mobile ? "Outils pentest" : "Chargement des outils de pentest", width), type: "system", delay: 200 },
+    { text: "", type: "system" },
+    { text: "__PROGRESS__", type: "highlight", delay: 600 },
+    { text: "", type: "system" },
+    { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
+    { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
+    { text: "", type: "system" },
+  ];
+};
 
 const ASCII_BANNER_DESKTOP = [
   "  ████████╗██╗  ██╗ ██████╗ ███╗   ██╗ █████╗ ██╗██████╗ ",
