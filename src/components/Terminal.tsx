@@ -1379,14 +1379,24 @@ const Terminal = () => {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
+                  onChange={(e) => { setInput(e.target.value); beep(720, 0.02, 0.04); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") beep(440, 0.05, 0.05); handleKeyDown(e); }}
+                  onFocus={() => {
+                    if (isMobile) {
+                      setTimeout(() => {
+                        inputRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+                      }, 250);
+                    }
+                  }}
                   className="w-full bg-transparent text-foreground text-glow outline-none caret-transparent font-mono text-sm relative"
                   spellCheck={false}
                   autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   aria-label="Terminal command input"
                   autoFocus
                 />
+
                 <span
                   className="absolute top-0 animate-cursor-blink bg-foreground"
                   style={{
