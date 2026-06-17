@@ -609,6 +609,34 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🥪 Okay.", type: "highlight" });
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "sl") {
+    lines.push({ text: "__SL__", type: "system" });
+  } else if (trimmed === "sound" || trimmed.startsWith("sound ")) {
+    const arg = trimmed.replace(/^sound\s*/, "").trim();
+    if (!arg) {
+      lines.push({ text: "  Usage: sound [on|off]", type: "system" });
+    } else if (arg === "on" || arg === "off") {
+      lines.push({ text: `__SOUND__${arg}`, type: "system" });
+    } else {
+      lines.push({ text: `  sound: '${arg}' inconnu. Essaye on ou off.`, type: "error" });
+    }
+  } else if (trimmed === "accessible" || trimmed.startsWith("accessible ")) {
+    const arg = trimmed.replace(/^accessible\s*/, "").trim() || "toggle";
+    if (["on", "off", "toggle"].includes(arg)) {
+      lines.push({ text: `__ACCESSIBLE__${arg}`, type: "system" });
+    } else {
+      lines.push({ text: `  accessible: '${arg}' inconnu. Essaye on, off ou toggle.`, type: "error" });
+    }
+  } else if (trimmed.startsWith("echo ") || trimmed === "echo") {
+    const arg = raw.slice(4).trim();
+    lines.push({ text: `  ${arg}`, type: "output" });
+  } else if (trimmed === "history") {
+    lines.push({ text: "__HISTORY__", type: "system" });
+  } else if (trimmed === "reset") {
+    lines.push({ text: "__RESET__", type: "system" });
+  } else if (trimmed === "share" || trimmed.startsWith("share ")) {
+    const arg = trimmed.replace(/^share\s*/, "").trim();
+    lines.push({ text: `__SHARE__${arg}`, type: "system" });
   } else if (trimmed === "clear") {
     return [{ text: "__CLEAR__", type: "system" }];
   } else if (trimmed === "") {
