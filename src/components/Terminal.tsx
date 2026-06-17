@@ -388,21 +388,37 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "infra") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
-    lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
-    lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  Proxmox VE  │  Hyperviseur — VMs & containers LXC           │", type: "output" });
-    lines.push({ text: "│  Synology    │  NAS — stockage, backups, partage fichiers     │", type: "output" });
-    lines.push({ text: "│  SearXNG     │  Moteur de recherche self-hosted & privé       │", type: "output" });
-    lines.push({ text: "│  Uptime Kuma │  Monitoring & alertes uptime des services      │", type: "output" });
-    lines.push({ text: "│  Homarr      │  Dashboard centralisé avec stats live          │", type: "output" });
-    lines.push({ text: "│  Cloudflare  │  Zero Trust — accès sécurisé & tunnels         │", type: "output" });
-    lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
-    lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
-    lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+    const services: [string, string, string][] = [
+      ["Proxmox VE", "Hyperviseur — VMs & containers LXC", "Hyperviseur"],
+      ["Synology", "NAS — stockage, backups, partage fichiers", "NAS / backups"],
+      ["SearXNG", "Moteur de recherche self-hosted & privé", "Recherche privée"],
+      ["Uptime Kuma", "Monitoring & alertes uptime des services", "Monitoring"],
+      ["Homarr", "Dashboard centralisé avec stats live", "Dashboard"],
+      ["Cloudflare", "Zero Trust — accès sécurisé & tunnels", "Zero Trust"],
+    ];
+    if (mobile) {
+      sectionHeader("INFRA HOMELAB").forEach((l) => lines.push(l));
+      services.forEach(([name, , short]) => {
+        lines.push({ text: `  • ${name}`, type: "output" });
+        lines.push({ text: `    ${short}`, type: "system" });
+      });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "  🔒 Cloudflare Zero Trust", type: "system" });
+      lines.push({ text: "  📡 Bruxelles, BE", type: "system" });
+    } else {
+      lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
+      lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
+      lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
+      lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
+      lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
+      services.forEach(([name, desc]) => {
+        lines.push({ text: `│  ${name.padEnd(12)}│  ${desc.padEnd(45)}│`, type: "output" });
+      });
+      lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
+      lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
+      lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
+      lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+    }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
     lines.push({ text: "__STATUS_LIVE__", type: "system" });
