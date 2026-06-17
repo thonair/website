@@ -349,16 +349,51 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   } else if (trimmed === "date") {
     lines.push({ text: `  ${new Date().toLocaleString("fr-BE")}`, type: "output" });
   } else if (trimmed === "neofetch") {
+    const logoDesktop = [
+      "      ▄▄████████████▄▄      ",
+      "    ██▀   ▄█▌    ▐█▄   ▀██  ",
+      "   █    ▄██▘      ▝██▄    █ ",
+      "  █    ██▀   ▄▄▄    ▀██    █",
+      "  █   ▀▀  ▄██▀ ▀██▄  ▀▀    █",
+      "  █     ▄██▘     ▝██▄      █",
+      "   █   ▀▀          ▀▀     █ ",
+      "    ██▄              ▄▄██   ",
+      "      ▀▀████████████▀▀      ",
+    ];
+    const logoMobile = [
+      "   ▄▄█████▄▄   ",
+      "  █▘ ▟▌  ▐▙ ▝█ ",
+      " █  ▜▙   ▟▛  █ ",
+      " █  ▟▛   ▜▙  █ ",
+      "  █▖ ▝   ▘ ▗█  ",
+      "   ▀▀█████▀▀   ",
+    ];
+    const infoDesktop = [
+      "  mbt@cyberos",
+      "  ─────────────",
+      "  OS: CyberOS v3.1",
+      "  Host: ThonAir Terminal",
+      "  Kernel: security-core-v3.1",
+      "  Shell: mbt-shell 1.0",
+      "  Location: Bruxelles 🇧🇪",
+      "  Uptime: 24/7 self-hosted",
+      "  Languages: FR/EN/NL",
+    ];
+    const logo = mobile ? logoMobile : logoDesktop;
+    const info = infoDesktop;
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "         ▄▄▄▄▄▄▄▄▄▄▄       mbt@cyberos", type: "ascii" });
-    lines.push({ text: "        ██████████████      ─────────────", type: "ascii" });
-    lines.push({ text: "       ████████████████     OS: CyberOS v3.1", type: "output" });
-    lines.push({ text: "      ██████████████████    Host: ThonAir Terminal", type: "output" });
-    lines.push({ text: "     ████████████████████   Kernel: security-core-v3.1", type: "output" });
-    lines.push({ text: "      ██████████████████    Shell: mbt-shell 1.0", type: "output" });
-    lines.push({ text: "       ████████████████     Location: Bruxelles 🇧🇪", type: "output" });
-    lines.push({ text: "        ██████████████      Uptime: 24/7 self-hosted", type: "output" });
-    lines.push({ text: "         ▀▀▀▀▀▀▀▀▀▀▀       Languages: FR/EN/NL", type: "output" });
+    if (mobile) {
+      logo.forEach((l) => lines.push({ text: l, type: "ascii" }));
+      lines.push({ text: "", type: "output" });
+      info.forEach((l) => lines.push({ text: l, type: "output" }));
+    } else {
+      const max = Math.max(logo.length, info.length);
+      for (let i = 0; i < max; i++) {
+        const left = logo[i] ?? " ".repeat(28);
+        const right = info[i] ?? "";
+        lines.push({ text: `${left}  ${right}`, type: i < 2 ? "ascii" : "output" });
+      }
+    }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf") {
     lines.push({ text: "", type: "output" });

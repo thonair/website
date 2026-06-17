@@ -1,77 +1,58 @@
+# Plan — Logo ASCII ThonAir dans `neofetch` + pistes d'améliorations
 
+## 1. Remplacer le logo ASCII de `neofetch`
 
-# Analyse et améliorations de tes sous-domaines thonair.com
+Actuellement, la commande `neofetch` affiche un blob générique en forme d'œil/bulle. Je vais le remplacer par une représentation ASCII du **cercle ThonAir avec les deux éclairs** (rouge à gauche, bleu à droite), en ne reprenant **que ce qui est dans le cercle rouge annoté** sur ton image (donc sans le mot "THONAIR" en dessous).
 
-## Ce que j'ai observé
+### Approche visuelle
 
-### 1. home.thonair.com — Homepage / Dashboard
-- **Outil** : Homarr ou similaire (Next.js powered)
-- **Contenu** : Dashboard bien organisé avec sections Infrastructure, Services, Storage, System, Monitoring, Developer, Social, Admin, Docs
-- **Stats live** : CPU, MEM, RX, TX pour chaque service
-- **Points positifs** : Bien structuré, stats en temps réel, météo Brussels
-- **Améliorations possibles** :
-  - Personnaliser le titre "Welcome to the Main Hub" avec ton branding (ex: "ThonAir Command Center")
-  - Ajouter des icônes/favicons personnalisés pour chaque service
-  - Configurer des alertes visuelles (rouge/orange) quand un service dépasse un seuil CPU/MEM
-  - Ajouter un dark mode plus contrasté ou un thème qui match ton portfolio CyberOS
+ASCII art monochrome (le terminal est mono-couleur vert/glow) — l'identité passera par la forme : cercle + double éclair en V inversé / Z miroir.
 
-### 2. stats.thonair.com — Uptime Kuma
-- **Outil** : Uptime Kuma (self-hosted)
-- **Contenu** : Page de login standard Uptime Kuma
-- **Améliorations possibles** :
-  - Activer une **status page publique** pour montrer l'uptime de tes services sans login — c'est un excellent ajout pour ton portfolio (montre ta fiabilité d'infra)
-  - Personnaliser la status page avec ton branding ThonAir
-  - Ajouter des monitors pour tous tes sous-domaines
-  - Configurer des notifications (Telegram, Discord, email) pour les downtimes
+Esquisse cible (~11 lignes, taille comparable à l'actuel) :
 
-### 3. search.thonair.com — SearXNG
-- **Outil** : SearXNG 2026.3.20
-- **Contenu** : Instance fonctionnelle, thème sombre, propre
-- **Améliorations possibles** :
-  - Personnaliser le branding : remplacer le logo "SearXNG" par ton propre logo/nom
-  - Configurer les moteurs de recherche préférés dans les Preferences
-  - Activer les catégories utiles (IT, science, files)
-  - Ajouter un mot de passe ou restriction d'accès si ce n'est pas déjà fait (éviter l'abus)
+```text
+ajouter la photo donnée maintenant en ascii
+```
 
-### 4. files.thonair.com — Synology Drive
-- **Non accessible** (derrière auth) — C'est normal et sécurisé
-- **Améliorations possibles** :
-  - S'assurer que l'accès est bien protégé par Zero Trust Cloudflare
-  - Activer le 2FA sur le compte Synology
-  - Configurer des snapshots automatiques pour la protection des données
-
-### 5. nas.thonair.com — Synology DSM
-- **Non accessible** (derrière auth) — Normal
-- **Améliorations possibles** :
-  - Mettre à jour DSM régulièrement
-  - Désactiver les ports inutiles
-  - Configurer les alertes email pour l'état des disques (SMART)
-
-### 6. pve.thonair.com — Proxmox VE
-- **Non accessible** (derrière Zero Trust Cloudflare) — Bonne pratique
-- **Améliorations possibles** :
-  - Configurer des backups automatiques des VMs/LXCs
-  - Mettre en place du HA (High Availability) si tu as un second noeud
-  - Monitorer les températures et l'état des disques
-
----
-
-## Ce qu'on peut faire dans ton portfolio (thonair.com)
-
-Intégrer une commande `infra` ou `services` dans ton terminal CyberOS qui affiche ton infrastructure homelab de manière professionnelle. Cela montrerait aux recruteurs tes compétences en :
-- Administration système (Proxmox, Synology)
-- Self-hosting (SearXNG, Uptime Kuma)
-- Sécurité réseau (Cloudflare Zero Trust)
-- Monitoring (Uptime Kuma, homepage stats)
-
-### Plan d'implémentation
-
-1. **Ajouter une commande `infra`** dans Terminal.tsx qui affiche un tableau ASCII de tes services avec descriptions
-2. **Ajouter une commande `status`** qui affiche les liens vers tes status pages (si tu actives la status page publique d'Uptime Kuma)
-3. **Mettre à jour la commande `help`** pour inclure ces nouvelles commandes
+- Garde le bloc d'infos système à droite (OS, Host, Kernel, Shell, Location, Uptime, Languages), aligné comme aujourd'hui.
+- Version mobile compacte (~7 lignes, largeur ~22 cols) pour rester lisible sur téléphone via `useIsMobile`.
 
 ### Détails techniques
-- Fichier modifié : `src/components/Terminal.tsx`
-- Ajout de handlers pour les commandes `infra` et `status` dans le switch/case existant
-- Affichage en format ASCII art / tableau aligné pour rester cohérent avec le thème terminal
 
+- Fichier : `src/components/Terminal.tsx`
+- Remplacer le bloc ASCII actuel dans le handler `trimmed === "neofetch"` par deux constantes `THONAIR_LOGO_DESKTOP` / `THONAIR_LOGO_MOBILE` et faire un `zip` ligne-par-ligne logo + infos.
+- Type `ascii` conservé pour bénéficier du `text-glow-strong`.
+
+## 2. Autres pistes d'améliorations proposées
+
+Tu choisiras lesquelles tu veux que j'implémente ensuite.
+
+### UX / Terminal
+
+1. **Autocomplétion `Tab**` sur les commandes (help, status, network, ping…) + suggestions inline en gris.
+2. **Indicateur de chargement plus riche** pour `status` (spinner ASCII animé `| / - \` au lieu du simple ⏳ statique).
+3. **Commande `theme**` pour switcher entre 2-3 palettes (vert Matrix actuel / ambre vintage / cyan tron) — sauvegarde en `localStorage`.
+4. **Commande `traceroute**` déjà évoquée : simulation Internet → Cloudflare → Proxmox → Service avec hops et latences progressifs (effet ligne-par-ligne).
+5. **Historique persistant** des commandes dans `localStorage` (re-rechargement = on garde la flèche ↑).
+
+### Contenu / Identité
+
+6. **Lien GitHub / LinkedIn cliquable** dans `cat contact` (et icônes ASCII).
+7. **Section `cat cv` ou commande `download cv**` qui télécharge ton CV PDF.
+8. **Commande `projects --verbose**` ou `cat projets/01` pour drill-down sur un projet précis (techno utilisée, captures ASCII, lien repo).
+
+### Polish visuel
+
+9. **Effet "typing" sur la sortie des commandes** (pas seulement au boot) — chaque ligne s'écrit caractère par caractère pour les commandes longues comme `infra` ou `network`.
+10. **Sound design optionnel** : petits "beep" mécaniques de clavier (toggle via commande `mute`), désactivé par défaut.
+11. **Easter eggs** supplémentaires : `matrix` (intensifie la pluie Matrix 5s), `hack` (faux scan de ports animé), `coffee` (☕ ASCII).
+12. **SEO / partage** : og:image générée avec le logo ThonAir + tagline, meta description FR optimisée pour "Mustafa Bera Tcholakov cybersécurité Bruxelles".
+
+### Performance / Tech
+
+13. **Lazy-load** de `MatrixRain` (composant lourd) après le boot — gain au premier paint.
+14. **A11y** : ajouter `aria-live="polite"` sur la zone de sortie pour les lecteurs d'écran, et un mode "no-effects" (sans CRT/flicker/matrix) déclenché par `prefers-reduced-motion`.
+
+## Ce qui sera fait dans ce plan
+
+Uniquement le **point 1** (logo ASCII ThonAir dans `neofetch`, desktop + mobile). Dis-moi ensuite quels points parmi 1-14 tu veux que j'attaque.
