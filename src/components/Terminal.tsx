@@ -699,7 +699,7 @@ const Terminal = () => {
               className={`${getLineColor(line.type)} whitespace-pre-wrap animate-fade-in-line`}
               style={{ animationDelay: booting ? `${i * 20}ms` : "0ms" }}
             >
-              {line.text || "\u00A0"}
+              {renderLineContent(line.text)}
             </div>
           ))}
 
