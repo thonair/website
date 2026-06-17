@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import MatrixRain from "./MatrixRain";
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+const MatrixRain = lazy(() => import("./MatrixRain"));
 
 type OutputLine = {
   text: string;
@@ -59,6 +60,38 @@ const ASCII_BANNER_MOBILE = [
   "   ╩ ╩ ╩╚═╝╝╚╝╩ ╩╩╩╚═",
 ];
 
+// ASCII representation of the ThonAir logo (circle + double lightning)
+const THONAIR_LOGO_DESKTOP = [
+  "             `,;!iIIii!,             ",
+  "         '!l|+|lIIIIIllI: `iIlIii:,'",
+  "       :i|*+!:`     ,;l:,;+*+**?o0?l`",
+  "     `I?*!`      `;Il|ii|l+|++*oo*!` ",
+  "    ,+?I,     ';Il+*+Il++|++*?0?l;   ",
+  "   ,+oI'    `!++||?+|+|||+*?0*I;i*!  ",
+  "  '!o|`   ;Il+IIl+*+*+|++*00oI,`!?+: ",
+  "  `|oI`,!++|I!I**+oo*+|+++??o??+l|oi ",
+  "  `|ol:lo?*li!!i|+*???o?+|+?o?|;;|?! ",
+  "  'iol,':i+o?I!!!i+*+*?+*??+i,  ;?*: ",
+  "   :+*;`:l**li!i|*||***?*|;'   ,|ol' ",
+  "    ,!il+*li!!Il|Il*??+i,     :+oI`  ",
+  "    ,I?*Ii!!i||i;I*|I:'     `i??i'   ",
+  "  '!?o?+|IIlll::;I:`     ,!l**I,     ",
+  "   `;iIl|l|l:'`!lii!IIll|**l!`       ",
+  "          '   ':lIl+++|!;,'          ",
+];
+
+const THONAIR_LOGO_MOBILE = [
+  "      :!iiIII! '::`'   ",
+  "   'iII:` `:i!;|+*?*!  ",
+  "  ,+I'  `!l+l|++*?+i   ",
+  " '*I  ;I||**+++ooi;+:  ",
+  " :?;i*|ii|*?**+?o+i+I  ",
+  " '*i,I?l!i|+*?*l; ,?;  ",
+  "  ,II|iiIl|*|i`  :*i   ",
+  " 'I?+III!!i:' `;ll:    ",
+  "  `,:;; `IIl|II!`      ",
+];
+
 const FORTUNES = [
   "\"The quieter you become, the more you are able to hear.\" - Kali Linux",
   "\"Hack the planet!\" - Hackers (1995)",
@@ -81,6 +114,48 @@ const SUBDOMAINS = [
   { name: "stats", host: "stats.thonair.com", protected: false },
 ];
 
+const PROJECTS: Record<
+  string,
+  { title: string; stack: string[]; summary: string[]; links?: string[] }
+> = {
+  "01": {
+    title: "Home Lab — Environnement de pentest",
+    stack: ["Kali Linux", "Metasploit", "Burp Suite", "Nmap", "Wireshark"],
+    summary: [
+      "Lab isolé sur Proxmox pour pratiquer le pentest offensif :",
+      "  - Réseau segmenté (VLANs) + machines vulnérables (DVWA, Metasploitable)",
+      "  - Workflow reconnaissance → exploitation → post-exploit → reporting",
+    ],
+  },
+  "02": {
+    title: "CTF Challenges",
+    stack: ["HackTheBox", "TryHackMe", "Root-Me", "PicoCTF"],
+    summary: [
+      "Participation régulière à des CTF (web, crypto, reverse, pwn).",
+      "  - Focus sur l'exploitation web et l'escalade de privilèges Linux",
+      "  - Writeups privés pour suivre la progression",
+    ],
+  },
+  "03": {
+    title: "Sécurisation Cloud",
+    stack: ["Azure", "AWS", "Terraform", "Defender for Cloud"],
+    summary: [
+      "Configuration sécurisée d'infrastructures cloud :",
+      "  - IAM least-privilege, MFA, conditional access",
+      "  - Monitoring (Sentinel/GuardDuty), durcissement réseau",
+    ],
+  },
+};
+
+const COMMANDS = [
+  "help", "ls", "cat", "whoami", "banner", "skills", "certifications", "certs",
+  "infra", "network", "net", "status", "ping", "traceroute", "tracert",
+  "fortune", "date", "neofetch", "theme", "matrix", "hack", "coffee",
+  "clear", "sudo",
+];
+
+const FILES = ["about", "services", "contact", "projets", "projets/01", "projets/02", "projets/03"];
+
 function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const trimmed = cmd.trim().toLowerCase();
   const lines: OutputLine[] = [];
@@ -100,16 +175,24 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
     lines.push({ text: "║  status          → état live des services        ║", type: "output" });
     lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
+    lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
     lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
     lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
     lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
+    lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
+    lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
+    lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
+    lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
     lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
     lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
+    lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
+    lines.push({ text: "║  💡 Tab = autocomplétion  ·  ↑/↓ = historique    ║", type: "system" });
     lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "ls") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "📁 about.txt    📁 services.txt    📁 contact.txt    📁 projets.txt", type: "highlight" });
+    lines.push({ text: "📁 about.txt    📁 services.txt    📁 contact.txt    📁 projets/", type: "highlight" });
+    lines.push({ text: "   projets/01.txt   projets/02.txt   projets/03.txt", type: "system" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat about" || trimmed === "cat about.txt") {
     lines.push({ text: "", type: "output" });
@@ -160,6 +243,9 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "  📞  +32 0486 60 79 96", type: "output" });
     lines.push({ text: "  📍  Bruxelles, Belgique", type: "output" });
     lines.push({ text: "", type: "output" });
+    lines.push({ text: "  🐙  __GH__https://github.com/BeraTch", type: "output" });
+    lines.push({ text: "  💼  __LI__https://www.linkedin.com/in/mustafa-bera-tcholakov", type: "output" });
+    lines.push({ text: "", type: "output" });
     lines.push({ text: "  N'hésitez pas à me contacter pour toute", type: "system" });
     lines.push({ text: "  question ou collaboration !", type: "system" });
     lines.push({ text: "", type: "output" });
@@ -169,15 +255,28 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "│               PROJETS & LABS                 │", type: "highlight" });
     lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "  [01]  Home Lab - Environnement de pentest", type: "output" });
-    lines.push({ text: "        Kali Linux, Metasploit, Burp Suite", type: "system" });
+    Object.entries(PROJECTS).forEach(([id, p]) => {
+      lines.push({ text: `  [${id}]  ${p.title}`, type: "output" });
+      lines.push({ text: `        ${p.stack.join(", ")}`, type: "system" });
+      lines.push({ text: "", type: "output" });
+    });
+    lines.push({ text: "  💡 Tape 'cat projets/01' pour le détail.", type: "system" });
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "  [02]  CTF Challenges", type: "output" });
-    lines.push({ text: "        Participation active sur HackTheBox,", type: "system" });
-    lines.push({ text: "        TryHackMe et Root-Me", type: "system" });
+  } else if (/^cat projets\/(\d{2})(\.txt)?$/.test(trimmed)) {
+    const id = trimmed.match(/^cat projets\/(\d{2})/)![1];
+    const p = PROJECTS[id];
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "  [03]  Sécurisation Cloud", type: "output" });
-    lines.push({ text: "        Configuration sécurisée d'infra Azure/AWS", type: "system" });
+    if (!p) {
+      lines.push({ text: `  cat: projets/${id}: aucun projet`, type: "error" });
+    } else {
+      lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
+      lines.push({ text: `│  PROJET ${id} — ${p.title.padEnd(28).slice(0, 28)} │`, type: "highlight" });
+      lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: `  Stack : ${p.stack.join(", ")}`, type: "output" });
+      lines.push({ text: "", type: "output" });
+      p.summary.forEach((s) => lines.push({ text: `  ${s}`, type: "system" }));
+    }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "whoami" || trimmed === "whois bera") {
     lines.push({ text: "", type: "output" });
@@ -239,6 +338,40 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
     lines.push({ text: "__STATUS_LIVE__", type: "system" });
+  } else if (trimmed === "traceroute" || trimmed === "tracert" || trimmed.startsWith("traceroute ") || trimmed.startsWith("tracert ")) {
+    lines.push({ text: "__TRACEROUTE__" + trimmed.replace(/^(traceroute|tracert)\s*/, ""), type: "system" });
+  } else if (trimmed === "matrix") {
+    lines.push({ text: "__MATRIX_BOOST__", type: "system" });
+  } else if (trimmed === "hack" || trimmed === "hack the planet") {
+    lines.push({ text: "__HACK__", type: "system" });
+  } else if (trimmed === "coffee" || trimmed === "brew coffee") {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: "        (  )   (   )  )", type: "ascii" });
+    lines.push({ text: "         ) (   )  (  (", type: "ascii" });
+    lines.push({ text: "         ( )  (    ) )", type: "ascii" });
+    lines.push({ text: "        _____________", type: "ascii" });
+    lines.push({ text: "       <_____________> ___", type: "ascii" });
+    lines.push({ text: "       |             |/ _ \\", type: "ascii" });
+    lines.push({ text: "       |               | | |", type: "ascii" });
+    lines.push({ text: "       |               |_| |", type: "ascii" });
+    lines.push({ text: "    ___|             |\\___/", type: "ascii" });
+    lines.push({ text: "   /    \\___________/    \\", type: "ascii" });
+    lines.push({ text: "   \\_____________________/", type: "ascii" });
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: "  ☕ Un café bien serré, comme il se doit.", type: "highlight" });
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed.startsWith("theme")) {
+    const arg = trimmed.replace(/^theme\s*/, "").trim();
+    if (!arg) {
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "  Usage: theme [matrix|amber|cyan]", type: "system" });
+      lines.push({ text: "  Thème actuel sauvegardé dans le navigateur.", type: "system" });
+      lines.push({ text: "", type: "output" });
+    } else if (["matrix", "green", "amber", "cyan"].includes(arg)) {
+      lines.push({ text: "__THEME__" + (arg === "green" ? "matrix" : arg), type: "system" });
+    } else {
+      lines.push({ text: `  theme: '${arg}' inconnu. Essaye matrix, amber ou cyan.`, type: "error" });
+    }
   } else if (trimmed === "network" || trimmed === "net") {
     lines.push({ text: "", type: "output" });
     if (mobile) {
@@ -349,26 +482,8 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   } else if (trimmed === "date") {
     lines.push({ text: `  ${new Date().toLocaleString("fr-BE")}`, type: "output" });
   } else if (trimmed === "neofetch") {
-    const logoDesktop = [
-      "      ▄▄████████████▄▄      ",
-      "    ██▀   ▄█▌    ▐█▄   ▀██  ",
-      "   █    ▄██▘      ▝██▄    █ ",
-      "  █    ██▀   ▄▄▄    ▀██    █",
-      "  █   ▀▀  ▄██▀ ▀██▄  ▀▀    █",
-      "  █     ▄██▘     ▝██▄      █",
-      "   █   ▀▀          ▀▀     █ ",
-      "    ██▄              ▄▄██   ",
-      "      ▀▀████████████▀▀      ",
-    ];
-    const logoMobile = [
-      "   ▄▄█████▄▄   ",
-      "  █▘ ▟▌  ▐▙ ▝█ ",
-      " █  ▜▙   ▟▛  █ ",
-      " █  ▟▛   ▜▙  █ ",
-      "  █▖ ▝   ▘ ▗█  ",
-      "   ▀▀█████▀▀   ",
-    ];
-    const infoDesktop = [
+    const logo = mobile ? THONAIR_LOGO_MOBILE : THONAIR_LOGO_DESKTOP;
+    const info = [
       "  mbt@cyberos",
       "  ─────────────",
       "  OS: CyberOS v3.1",
@@ -377,21 +492,23 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       "  Shell: mbt-shell 1.0",
       "  Location: Bruxelles 🇧🇪",
       "  Uptime: 24/7 self-hosted",
-      "  Languages: FR/EN/NL",
+      "  Languages: FR / EN / NL",
+      "  Theme: $(theme)",
     ];
-    const logo = mobile ? logoMobile : logoDesktop;
-    const info = infoDesktop;
     lines.push({ text: "", type: "output" });
     if (mobile) {
       logo.forEach((l) => lines.push({ text: l, type: "ascii" }));
       lines.push({ text: "", type: "output" });
       info.forEach((l) => lines.push({ text: l, type: "output" }));
     } else {
-      const max = Math.max(logo.length, info.length);
+      const logoWidth = Math.max(...logo.map((l) => l.length));
+      const startInfo = Math.max(0, Math.floor((logo.length - info.length) / 2));
+      const max = Math.max(logo.length, info.length + startInfo);
       for (let i = 0; i < max; i++) {
-        const left = logo[i] ?? " ".repeat(28);
-        const right = info[i] ?? "";
-        lines.push({ text: `${left}  ${right}`, type: i < 2 ? "ascii" : "output" });
+        const left = (logo[i] ?? "").padEnd(logoWidth, " ");
+        const infoIdx = i - startInfo;
+        const right = infoIdx >= 0 && infoIdx < info.length ? info[infoIdx] : "";
+        lines.push({ text: `${left}  ${right}`, type: "ascii" });
       }
     }
     lines.push({ text: "", type: "output" });
@@ -420,18 +537,55 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   return lines;
 }
 
-// Render a terminal line, turning *.thonair.com hostnames into clickable links
+// Render a terminal line, turning hostnames + GH/LinkedIn markers into clickable links
 function renderLineContent(text: string): React.ReactNode {
   if (!text) return "\u00A0";
+
+  // Special markers for social links
+  const ghMatch = text.match(/^(.*?)__GH__(\S+)(.*)$/);
+  if (ghMatch) {
+    return (
+      <>
+        {ghMatch[1]}
+        <a
+          href={ghMatch[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-dotted underline-offset-2 text-glow hover:text-primary transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          GitHub — {ghMatch[2].replace(/^https?:\/\//, "")}
+        </a>
+        {ghMatch[3]}
+      </>
+    );
+  }
+  const liMatch = text.match(/^(.*?)__LI__(\S+)(.*)$/);
+  if (liMatch) {
+    return (
+      <>
+        {liMatch[1]}
+        <a
+          href={liMatch[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-dotted underline-offset-2 text-glow hover:text-primary transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          LinkedIn — Mustafa Bera Tcholakov
+        </a>
+        {liMatch[3]}
+      </>
+    );
+  }
+
   const regex = /([a-z0-9-]+\.thonair\.com)/gi;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
   while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
     const host = match[0];
     parts.push(
       <a
@@ -451,18 +605,46 @@ function renderLineContent(text: string): React.ReactNode {
   return parts.length ? parts : text;
 }
 
+const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+const HISTORY_KEY = "thonair_cmd_history";
+const THEME_KEY = "thonair_theme";
+
 const Terminal = () => {
   const isMobile = useIsMobile();
   const [lines, setLines] = useState<OutputLine[]>([]);
   const [input, setInput] = useState("");
   const [booted, setBooted] = useState(false);
   const [booting, setBooting] = useState(true);
-  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [commandHistory, setCommandHistory] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [suggestion, setSuggestion] = useState("");
+  const [matrixBoost, setMatrixBoost] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const bootSequence = useMemo(() => buildBootSequence(isMobile), [isMobile]);
+
+  // Apply persisted theme on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(THEME_KEY) || "matrix";
+    document.body.classList.remove("theme-amber", "theme-cyan");
+    if (stored === "amber") document.body.classList.add("theme-amber");
+    else if (stored === "cyan") document.body.classList.add("theme-cyan");
+  }, []);
+
+  // Persist history
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(commandHistory.slice(0, 50)));
+    } catch { /* ignore */ }
+  }, [commandHistory]);
 
   // Boot sequence
   useEffect(() => {
@@ -480,15 +662,11 @@ const Terminal = () => {
     };
 
     const animateProgress = (onDone: () => void) => {
-      // Push initial 0% line
       setLines((prev) => [...prev, { text: buildProgressLine(0), type: "highlight" }]);
       let pct = 0;
       const step = 4;
       const tick = setInterval(() => {
-        if (cancelled) {
-          clearInterval(tick);
-          return;
-        }
+        if (cancelled) { clearInterval(tick); return; }
         pct = Math.min(100, pct + step);
         setLines((prev) => {
           const next = [...prev];
@@ -520,34 +698,42 @@ const Terminal = () => {
     };
 
     const startTimer = setTimeout(advance, 80);
-    return () => {
-      cancelled = true;
-      clearTimeout(startTimer);
-    };
+    return () => { cancelled = true; clearTimeout(startTimer); };
   }, [bootSequence, isMobile]);
 
   // Auto scroll
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [lines]);
 
   // Focus input
-  useEffect(() => {
-    if (booted) inputRef.current?.focus();
-  }, [booted]);
+  useEffect(() => { if (booted) inputRef.current?.focus(); }, [booted]);
 
   const handleFocusTerminal = useCallback(() => {
     if (booted) inputRef.current?.focus();
   }, [booted]);
 
   const runStatusCommand = useCallback(async () => {
+    // animated spinner placeholder
+    let spinIdx = 0;
     setLines((prev) => [
       ...prev,
       { text: "", type: "output" },
-      { text: "  ⏳ Interrogation de stats.thonair.com (Uptime Kuma)...", type: "system" },
+      { text: `  ${SPINNER[0]} Interrogation de stats.thonair.com (Uptime Kuma)...`, type: "system" },
     ]);
+    const spinTick = setInterval(() => {
+      spinIdx = (spinIdx + 1) % SPINNER.length;
+      setLines((prev) => {
+        const next = [...prev];
+        for (let i = next.length - 1; i >= 0; i--) {
+          if (next[i].text.includes("Interrogation de stats.thonair.com")) {
+            next[i] = { ...next[i], text: `  ${SPINNER[spinIdx]} Interrogation de stats.thonair.com (Uptime Kuma)...` };
+            break;
+          }
+        }
+        return next;
+      });
+    }, 100);
 
     type Row = { name: string; host: string; up: boolean | null; protected: boolean; uptime?: number };
     const rows: Row[] = SUBDOMAINS.map((s) => ({ ...s, up: null }));
@@ -562,14 +748,8 @@ const Terminal = () => {
             `https://stats.thonair.com/api/status-page/heartbeat/${slug}`,
             { cache: "no-store" },
           );
-          if (res.ok) {
-            heartbeat = await res.json();
-            liveSource = "kuma";
-            break;
-          }
-        } catch {
-          /* try next slug */
-        }
+          if (res.ok) { heartbeat = await res.json(); liveSource = "kuma"; break; }
+        } catch { /* try next slug */ }
       }
 
       if (heartbeat?.heartbeatList) {
@@ -593,25 +773,20 @@ const Terminal = () => {
           });
         });
       }
-    } catch {
-      liveSource = "fallback";
-    }
+    } catch { liveSource = "fallback"; }
 
     if (liveSource === "fallback") {
       await Promise.all(
         rows.map(async (r) => {
           try {
-            await fetch(`https://${r.host}/favicon.ico`, {
-              mode: "no-cors",
-              cache: "no-store",
-            });
+            await fetch(`https://${r.host}/favicon.ico`, { mode: "no-cors", cache: "no-store" });
             r.up = true;
-          } catch {
-            r.up = null;
-          }
+          } catch { r.up = null; }
         }),
       );
     }
+
+    clearInterval(spinTick);
 
     const pad = (s: string, n: number) => s + " ".repeat(Math.max(0, n - s.length));
     const fmtRow = (r: Row) => {
@@ -646,13 +821,111 @@ const Terminal = () => {
     setLines((prev) => {
       const next = [...prev];
       for (let i = next.length - 1; i >= 0; i--) {
-        if (next[i].text.startsWith("  ⏳ Interrogation")) {
+        if (next[i].text.includes("Interrogation de stats.thonair.com")) {
           next.splice(i - 1, 2);
           break;
         }
       }
       return [...next, ...output];
     });
+  }, []);
+
+  const runTraceroute = useCallback((targetArg: string) => {
+    const target = targetArg.trim() || "home.thonair.com";
+    const match = SUBDOMAINS.find(
+      (s) => s.name === target || s.host === target || target === s.host.split(".")[0],
+    );
+    const host = match ? match.host : target;
+
+    const hops = [
+      { name: "router.local", ip: "192.168.1.1" },
+      { name: "isp-gateway.brussels.be", ip: "84.198.x.x" },
+      { name: "cloudflare-edge", ip: "1.1.1.1" },
+      { name: "cf-tunnel.thonair", ip: "172.x.x.x" },
+      { name: "proxmox.thonair.lan", ip: "10.0.0.2" },
+      { name: host, ip: "10.0.0.x" },
+    ];
+
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      { text: `  traceroute to ${host}, 30 hops max`, type: "system" },
+    ]);
+
+    let i = 0;
+    const tick = () => {
+      if (i >= hops.length) return;
+      const h = hops[i];
+      const lat1 = (Math.random() * 20 + 1).toFixed(1);
+      const lat2 = (Math.random() * 20 + 1).toFixed(1);
+      const lat3 = (Math.random() * 20 + 1).toFixed(1);
+      setLines((prev) => [
+        ...prev,
+        {
+          text: `  ${String(i + 1).padStart(2, " ")}  ${h.name.padEnd(28, " ")} (${h.ip.padEnd(14, " ")})  ${lat1} ms  ${lat2} ms  ${lat3} ms`,
+          type: "output",
+        },
+      ]);
+      i++;
+      setTimeout(tick, 250);
+    };
+    setTimeout(tick, 200);
+    setTimeout(() => {
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  ✓ Trace complète — ${hops.length} hops, destination atteinte.`, type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+    }, 200 + hops.length * 250 + 100);
+  }, []);
+
+  const runHack = useCallback(() => {
+    const target = "203.0.113.42";
+    const ports = [22, 80, 443, 3306, 8080, 5432, 6379, 9000];
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      { text: `  [*] Initiating scan on ${target}...`, type: "system" },
+      { text: "  [*] Resolving target... OK", type: "system" },
+    ]);
+    let i = 0;
+    const tick = () => {
+      if (i >= ports.length) {
+        setLines((prev) => [
+          ...prev,
+          { text: "", type: "output" },
+          { text: "  [✓] Scan complete. Just kidding — c'est un script de démo 😉", type: "highlight" },
+          { text: "", type: "output" },
+        ]);
+        return;
+      }
+      const p = ports[i];
+      const open = Math.random() > 0.5;
+      setLines((prev) => [
+        ...prev,
+        {
+          text: `  [+] Port ${String(p).padStart(5, " ")}/tcp  →  ${open ? "OPEN  " : "closed"}  ${open ? "🟢" : "·"}`,
+          type: open ? "output" : "system",
+        },
+      ]);
+      i++;
+      setTimeout(tick, 180);
+    };
+    setTimeout(tick, 300);
+  }, []);
+
+  const applyTheme = useCallback((name: string) => {
+    document.body.classList.remove("theme-amber", "theme-cyan");
+    if (name === "amber") document.body.classList.add("theme-amber");
+    else if (name === "cyan") document.body.classList.add("theme-cyan");
+    localStorage.setItem(THEME_KEY, name);
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      { text: `  ✓ Thème activé : ${name}`, type: "highlight" },
+      { text: "", type: "output" },
+    ]);
   }, []);
 
   const handleSubmit = useCallback(
@@ -662,32 +935,93 @@ const Terminal = () => {
 
       const cmd = input;
       setInput("");
+      setSuggestion("");
       setHistoryIndex(-1);
 
       if (cmd.trim()) {
-        setCommandHistory((prev) => [cmd, ...prev]);
+        setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
       }
 
-      // Add command line
-      setLines((prev) => [
-        ...prev,
-        { text: `mbt@cyberos:~$ ${cmd}`, type: "command" },
-      ]);
+      setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
 
       const result = processCommand(cmd, isMobile);
       if (result.length === 1 && result[0].text === "__CLEAR__") {
         setLines([]);
-      } else if (result.length === 1 && result[0].text === "__STATUS_LIVE__") {
-        runStatusCommand();
-      } else {
-        setLines((prev) => [...prev, ...result]);
+        return;
       }
+      if (result.length === 1 && result[0].text === "__STATUS_LIVE__") {
+        runStatusCommand();
+        return;
+      }
+      if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) {
+        runTraceroute(result[0].text.replace("__TRACEROUTE__", ""));
+        return;
+      }
+      if (result.length === 1 && result[0].text === "__HACK__") {
+        runHack();
+        return;
+      }
+      if (result.length === 1 && result[0].text === "__MATRIX_BOOST__") {
+        setMatrixBoost(true);
+        setLines((prev) => [
+          ...prev,
+          { text: "", type: "output" },
+          { text: "  ▒▓█ Wake up, Neo... █▓▒", type: "highlight" },
+          { text: "", type: "output" },
+        ]);
+        setTimeout(() => setMatrixBoost(false), 5000);
+        return;
+      }
+      if (result.length === 1 && result[0].text.startsWith("__THEME__")) {
+        applyTheme(result[0].text.replace("__THEME__", ""));
+        return;
+      }
+      setLines((prev) => [...prev, ...result]);
     },
-    [input, booted, isMobile, runStatusCommand]
+    [input, booted, isMobile, runStatusCommand, runTraceroute, runHack, applyTheme]
   );
+
+  // Tab completion
+  const computeCompletion = useCallback((value: string): string => {
+    if (!value) return "";
+    const lower = value.toLowerCase();
+    // file completion for 'cat '
+    if (lower.startsWith("cat ")) {
+      const partial = lower.slice(4);
+      const match = FILES.find((f) => f.startsWith(partial));
+      return match ? "cat " + match : "";
+    }
+    // ping/traceroute host completion
+    const hostCmds = ["ping ", "traceroute ", "tracert "];
+    for (const hc of hostCmds) {
+      if (lower.startsWith(hc)) {
+        const partial = lower.slice(hc.length);
+        const match = SUBDOMAINS.find((s) => s.name.startsWith(partial));
+        return match ? hc + match.name : "";
+      }
+    }
+    if (lower.startsWith("theme ")) {
+      const partial = lower.slice(6);
+      const match = ["matrix", "amber", "cyan"].find((t) => t.startsWith(partial));
+      return match ? "theme " + match : "";
+    }
+    const match = COMMANDS.find((c) => c.startsWith(lower));
+    return match || "";
+  }, []);
+
+  useEffect(() => {
+    if (!input) { setSuggestion(""); return; }
+    const c = computeCompletion(input);
+    setSuggestion(c && c.toLowerCase() !== input.toLowerCase() ? c : "");
+  }, [input, computeCompletion]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (suggestion) setInput(suggestion);
+        return;
+      }
       if (e.key === "ArrowUp") {
         e.preventDefault();
         if (commandHistory.length > 0) {
@@ -707,37 +1041,29 @@ const Terminal = () => {
         }
       }
     },
-    [commandHistory, historyIndex]
+    [commandHistory, historyIndex, suggestion]
   );
 
   const getLineColor = (type: OutputLine["type"]) => {
     switch (type) {
-      case "ascii":
-        return "text-foreground text-glow-strong";
-      case "highlight":
-        return "text-foreground text-glow";
-      case "command":
-        return "text-foreground";
-      case "error":
-        return "text-terminal-red";
-      case "system":
-        return "text-muted-foreground";
+      case "ascii": return "text-foreground text-glow-strong";
+      case "highlight": return "text-foreground text-glow";
+      case "command": return "text-foreground";
+      case "error": return "text-terminal-red";
+      case "system": return "text-muted-foreground";
       case "output":
-      default:
-        return "text-foreground opacity-90";
+      default: return "text-foreground opacity-90";
     }
   };
 
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-background p-2 sm:p-4 md:p-8 relative overflow-hidden">
-      {/* Matrix Rain background */}
-      <MatrixRain />
-      {/* CRT Scanlines overlay */}
+      <Suspense fallback={null}>
+        <MatrixRain boost={matrixBoost} />
+      </Suspense>
       <div className="crt-scanlines" />
 
-      {/* Terminal window */}
       <div className="w-full max-w-5xl h-full max-h-[90vh] flex flex-col rounded-lg overflow-hidden border border-border shadow-2xl shadow-primary/10">
-        {/* Title bar */}
         <div className="flex items-center px-4 py-2.5 bg-terminal-header border-b border-border">
           <div className="flex gap-2 mr-4">
             <div className="w-3 h-3 rounded-full bg-terminal-red opacity-80 hover:opacity-100 transition-opacity" />
@@ -752,13 +1078,14 @@ const Terminal = () => {
           <div className="w-16" />
         </div>
 
-        {/* Terminal body */}
         <div
           ref={scrollRef}
           onClick={handleFocusTerminal}
+          aria-live="polite"
+          aria-label="Terminal output"
+          role="log"
           className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background crt-flicker cursor-text font-mono text-sm leading-relaxed"
         >
-          {/* Output lines */}
           {lines.map((line, i) => (
             <div
               key={i}
@@ -769,25 +1096,34 @@ const Terminal = () => {
             </div>
           ))}
 
-          {/* Input line */}
           {booted && (
             <form onSubmit={handleSubmit} className="flex items-center mt-1">
               <span className="text-foreground text-glow whitespace-pre">
                 mbt@cyberos:~${" "}
               </span>
               <div className="relative flex-1">
+                {/* ghost suggestion */}
+                {suggestion && (
+                  <span
+                    aria-hidden
+                    className="absolute top-0 left-0 font-mono text-sm pointer-events-none text-muted-foreground/60 whitespace-pre"
+                  >
+                    <span className="invisible">{input}</span>
+                    {suggestion.slice(input.length)}
+                  </span>
+                )}
                 <input
                   ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full bg-transparent text-foreground text-glow outline-none caret-transparent font-mono text-sm"
+                  className="w-full bg-transparent text-foreground text-glow outline-none caret-transparent font-mono text-sm relative"
                   spellCheck={false}
                   autoComplete="off"
+                  aria-label="Terminal command input"
                   autoFocus
                 />
-                {/* Custom cursor */}
                 <span
                   className="absolute top-0 animate-cursor-blink bg-foreground"
                   style={{
@@ -802,7 +1138,6 @@ const Terminal = () => {
           )}
         </div>
 
-        {/* Status bar */}
         <div className="flex items-center justify-between px-4 py-1.5 bg-terminal-header border-t border-border text-xs text-muted-foreground font-mono">
           <span>CyberOS v3.1</span>
           <span>thonair.com</span>
