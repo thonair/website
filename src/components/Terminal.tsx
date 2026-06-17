@@ -166,13 +166,14 @@ const COMMANDS = [
   "help", "ls", "cat", "whoami", "banner", "skills", "certifications", "certs",
   "infra", "network", "net", "status", "ping", "traceroute", "tracert",
   "fortune", "date", "neofetch", "theme", "matrix", "hack", "coffee",
-  "clear", "sudo",
+  "clear", "sudo", "sl", "sound", "accessible", "echo", "history", "reset", "share",
 ];
 
 const FILES = ["about", "services", "contact", "projets", "projets/01", "projets/02", "projets/03"];
 
 function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const trimmed = cmd.trim().toLowerCase();
+  const raw = cmd.trim();
   const lines: OutputLine[] = [];
 
   if (trimmed === "help") {
