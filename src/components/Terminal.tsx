@@ -24,26 +24,33 @@ const CYBEROS_ASCII_MOBILE = [
   "  ╚═╝ ╩ ╚═╝╚═╝╩╚═╚═╝╚═╝",
 ];
 
-const buildBootSequence = (mobile: boolean): OutputLine[] => [
-  { text: "", type: "system" },
-  ...(mobile ? CYBEROS_ASCII_MOBILE : CYBEROS_ASCII_DESKTOP).map(
-    (text) => ({ text, type: "ascii" as const })
-  ),
-  { text: "", type: "system" },
-  { text: "  Booting CyberOS v3.1...", type: "system", delay: 400 },
-  { text: "  Chargement des modules de cybersécurité .............. [OK]", type: "system", delay: 300 },
-  { text: "  Chargement du noyau security-core-v3.1 .............. [OK]", type: "system", delay: 250 },
-  { text: "  Connexion à la matrice .............................. [OK]", type: "system", delay: 350 },
-  { text: "  Initialisation du terminal sécurisé ................. [OK]", type: "system", delay: 200 },
-  { text: "  Vérification des pare-feux .......................... [OK]", type: "system", delay: 150 },
-  { text: "  Chargement des outils de pentest .................... [OK]", type: "system", delay: 200 },
-  { text: "", type: "system" },
-  { text: "__PROGRESS__", type: "highlight", delay: 600 },
-  { text: "", type: "system" },
-  { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
-  { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
-  { text: "", type: "system" },
-];
+const buildBootSequence = (mobile: boolean): OutputLine[] => {
+  const dot = (label: string, total: number) => {
+    const pad = Math.max(3, total - label.length - 4);
+    return `  ${label} ${".".repeat(pad)} [OK]`;
+  };
+  const width = mobile ? 28 : 56;
+  return [
+    { text: "", type: "system" },
+    ...(mobile ? CYBEROS_ASCII_MOBILE : CYBEROS_ASCII_DESKTOP).map(
+      (text) => ({ text, type: "ascii" as const })
+    ),
+    { text: "", type: "system" },
+    { text: "  Booting CyberOS v3.1...", type: "system", delay: 400 },
+    { text: dot(mobile ? "Modules sécurité" : "Chargement des modules de cybersécurité", width), type: "system", delay: 300 },
+    { text: dot(mobile ? "Noyau v3.1" : "Chargement du noyau security-core-v3.1", width), type: "system", delay: 250 },
+    { text: dot(mobile ? "Matrice" : "Connexion à la matrice", width), type: "system", delay: 350 },
+    { text: dot(mobile ? "Terminal sécurisé" : "Initialisation du terminal sécurisé", width), type: "system", delay: 200 },
+    { text: dot(mobile ? "Pare-feux" : "Vérification des pare-feux", width), type: "system", delay: 150 },
+    { text: dot(mobile ? "Outils pentest" : "Chargement des outils de pentest", width), type: "system", delay: 200 },
+    { text: "", type: "system" },
+    { text: "__PROGRESS__", type: "highlight", delay: 600 },
+    { text: "", type: "system" },
+    { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
+    { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
+    { text: "", type: "system" },
+  ];
+};
 
 const ASCII_BANNER_DESKTOP = [
   "  ████████╗██╗  ██╗ ██████╗ ███╗   ██╗ █████╗ ██╗██████╗ ",
@@ -159,14 +166,35 @@ const COMMANDS = [
   "help", "ls", "cat", "whoami", "banner", "skills", "certifications", "certs",
   "infra", "network", "net", "status", "ping", "traceroute", "tracert",
   "fortune", "date", "neofetch", "theme", "matrix", "hack", "coffee",
-  "clear", "sudo",
+  "clear", "sudo", "sl", "sound", "accessible", "echo", "history", "reset", "share",
 ];
 
 const FILES = ["about", "services", "contact", "projets", "projets/01", "projets/02", "projets/03"];
 
 function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const trimmed = cmd.trim().toLowerCase();
+  const raw = cmd.trim();
   const lines: OutputLine[] = [];
+
+  // Compact header helper: thin underline on mobile, ASCII box on desktop.
+  const sectionHeader = (title: string): OutputLine[] => {
+    if (mobile) {
+      return [
+        { text: `─── ${title} ───`, type: "highlight" },
+      ];
+    }
+    const inner = ` ${title} `;
+    const pad = 45 - inner.length;
+    const left = Math.max(0, Math.floor(pad / 2));
+    const right = Math.max(0, pad - left);
+    return [
+      { text: "┌─────────────────────────────────────────────┐", type: "highlight" },
+      { text: `│${" ".repeat(left)}${inner}${" ".repeat(right)}│`, type: "highlight" },
+      { text: "└─────────────────────────────────────────────┘", type: "highlight" },
+    ];
+  };
+
+
 
   if (trimmed === "help") {
     lines.push({ text: "", type: "output" });
@@ -188,9 +216,16 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
         ["date", "horloge"],
         ["neofetch", "sys info"],
         ["theme [n]", "matrix/amber/cyan"],
+        ["sound [on/off]", "bips"],
+        ["accessible", "mode sobre"],
+        ["share [cmd]", "lien direct"],
+        ["history", "historique"],
+        ["echo [txt]", "imprime"],
         ["matrix", "easter egg"],
+        ["sl", "easter egg"],
         ["hack", "port scan"],
         ["coffee", "☕"],
+        ["reset", "raz"],
         ["clear", "efface"],
       ];
       rows.forEach(([cmd, desc]) => {
@@ -220,8 +255,15 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
       lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
       lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
+      lines.push({ text: "║  sl              → easter egg 🚂                 ║", type: "output" });
       lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
       lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
+      lines.push({ text: "║  sound [on|off]  → bips de touche                ║", type: "output" });
+      lines.push({ text: "║  accessible      → mode sobre (no effects)       ║", type: "output" });
+      lines.push({ text: "║  share [cmd]     → lien direct ?cmd=...          ║", type: "output" });
+      lines.push({ text: "║  history         → dernières commandes           ║", type: "output" });
+      lines.push({ text: "║  echo [texte]    → imprime du texte              ║", type: "output" });
+      lines.push({ text: "║  reset           → raz historique & thème        ║", type: "output" });
       lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
       lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
       lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
@@ -236,9 +278,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat about" || trimmed === "cat about.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│              À PROPOS DE BERA               │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("À PROPOS DE BERA").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Nom       : Mustafa Bera Tcholakov", type: "output" });
     lines.push({ text: "  Titre     : Étudiant en Cybersécurité", type: "output" });
@@ -253,9 +293,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat services" || trimmed === "cat services.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│             SERVICES PROPOSÉS                │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("SERVICES PROPOSÉS").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🔍  Analyse de sécurité réseau", type: "output" });
     lines.push({ text: "      Audit complet de votre infrastructure", type: "system" });
@@ -275,9 +313,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat contact" || trimmed === "cat contact.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│                 CONTACT                      │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("CONTACT").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  📧  eslembera@gmail.com", type: "output" });
     lines.push({ text: "  📞  +32 0486 60 79 96", type: "output" });
@@ -291,9 +327,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat projets" || trimmed === "cat projets.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│               PROJETS & LABS                 │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("PROJETS & LABS").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     Object.entries(PROJECTS).forEach(([id, p]) => {
       lines.push({ text: `  [${id}]  ${p.title}`, type: "output" });
@@ -309,9 +343,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     if (!p) {
       lines.push({ text: `  cat: projets/${id}: aucun projet`, type: "error" });
     } else {
-      lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-      lines.push({ text: `│  PROJET ${id} — ${p.title.padEnd(28).slice(0, 28)} │`, type: "highlight" });
-      lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+      sectionHeader(`PROJET ${id} — ${p.title}`).forEach((l) => lines.push(l));
       lines.push({ text: "", type: "output" });
       lines.push({ text: `  Stack : ${p.stack.join(", ")}`, type: "output" });
       lines.push({ text: "", type: "output" });
@@ -334,9 +366,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "skills") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│           COMPÉTENCES TECHNIQUES             │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("COMPÉTENCES TECHNIQUES").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Sécurité    ████████████████████░░  90%", type: "output" });
     lines.push({ text: "  Réseau      ██████████████████░░░░  80%", type: "output" });
@@ -350,9 +380,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "certifications" || trimmed === "certs") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│         CERTIFICATIONS & FORMATIONS          │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("CERTIFICATIONS & FORMATIONS").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🎓  Étudiant en Cybersécurité", type: "output" });
     lines.push({ text: "  📚  En cours de certification...", type: "system" });
@@ -360,21 +388,37 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "infra") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
-    lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
-    lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  Proxmox VE  │  Hyperviseur — VMs & containers LXC           │", type: "output" });
-    lines.push({ text: "│  Synology    │  NAS — stockage, backups, partage fichiers     │", type: "output" });
-    lines.push({ text: "│  SearXNG     │  Moteur de recherche self-hosted & privé       │", type: "output" });
-    lines.push({ text: "│  Uptime Kuma │  Monitoring & alertes uptime des services      │", type: "output" });
-    lines.push({ text: "│  Homarr      │  Dashboard centralisé avec stats live          │", type: "output" });
-    lines.push({ text: "│  Cloudflare  │  Zero Trust — accès sécurisé & tunnels         │", type: "output" });
-    lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
-    lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
-    lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
-    lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+    const services: [string, string, string][] = [
+      ["Proxmox VE", "Hyperviseur — VMs & containers LXC", "Hyperviseur"],
+      ["Synology", "NAS — stockage, backups, partage fichiers", "NAS / backups"],
+      ["SearXNG", "Moteur de recherche self-hosted & privé", "Recherche privée"],
+      ["Uptime Kuma", "Monitoring & alertes uptime des services", "Monitoring"],
+      ["Homarr", "Dashboard centralisé avec stats live", "Dashboard"],
+      ["Cloudflare", "Zero Trust — accès sécurisé & tunnels", "Zero Trust"],
+    ];
+    if (mobile) {
+      sectionHeader("INFRA HOMELAB").forEach((l) => lines.push(l));
+      services.forEach(([name, , short]) => {
+        lines.push({ text: `  • ${name}`, type: "output" });
+        lines.push({ text: `    ${short}`, type: "system" });
+      });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "  🔒 Cloudflare Zero Trust", type: "system" });
+      lines.push({ text: "  📡 Bruxelles, BE", type: "system" });
+    } else {
+      lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
+      lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
+      lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
+      lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
+      lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
+      services.forEach(([name, desc]) => {
+        lines.push({ text: `│  ${name.padEnd(12)}│  ${desc.padEnd(45)}│`, type: "output" });
+      });
+      lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
+      lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
+      lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
+      lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+    }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
     lines.push({ text: "__STATUS_LIVE__", type: "system" });
@@ -565,6 +609,34 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🥪 Okay.", type: "highlight" });
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "sl") {
+    lines.push({ text: "__SL__", type: "system" });
+  } else if (trimmed === "sound" || trimmed.startsWith("sound ")) {
+    const arg = trimmed.replace(/^sound\s*/, "").trim();
+    if (!arg) {
+      lines.push({ text: "  Usage: sound [on|off]", type: "system" });
+    } else if (arg === "on" || arg === "off") {
+      lines.push({ text: `__SOUND__${arg}`, type: "system" });
+    } else {
+      lines.push({ text: `  sound: '${arg}' inconnu. Essaye on ou off.`, type: "error" });
+    }
+  } else if (trimmed === "accessible" || trimmed.startsWith("accessible ")) {
+    const arg = trimmed.replace(/^accessible\s*/, "").trim() || "toggle";
+    if (["on", "off", "toggle"].includes(arg)) {
+      lines.push({ text: `__ACCESSIBLE__${arg}`, type: "system" });
+    } else {
+      lines.push({ text: `  accessible: '${arg}' inconnu. Essaye on, off ou toggle.`, type: "error" });
+    }
+  } else if (trimmed.startsWith("echo ") || trimmed === "echo") {
+    const arg = raw.slice(4).trim();
+    lines.push({ text: `  ${arg}`, type: "output" });
+  } else if (trimmed === "history") {
+    lines.push({ text: "__HISTORY__", type: "system" });
+  } else if (trimmed === "reset") {
+    lines.push({ text: "__RESET__", type: "system" });
+  } else if (trimmed === "share" || trimmed.startsWith("share ")) {
+    const arg = trimmed.replace(/^share\s*/, "").trim();
+    lines.push({ text: `__SHARE__${arg}`, type: "system" });
   } else if (trimmed === "clear") {
     return [{ text: "__CLEAR__", type: "system" }];
   } else if (trimmed === "") {
@@ -648,6 +720,21 @@ function renderLineContent(text: string): React.ReactNode {
 const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const HISTORY_KEY = "thonair_cmd_history";
 const THEME_KEY = "thonair_theme";
+const SOUND_KEY = "thonair_sound";
+const ACCESSIBLE_KEY = "thonair_accessible";
+
+const SL_FRAMES = [
+  "      ====        ________                ___________",
+  "  _D _|  |_______/        \\__I_I_____===__|_________|",
+  "   |(_)---  |   H\\________/ |   |        =|___ ___|",
+  "   /     |  |   H  |  |     |   |         ||_| |_||",
+  "  |      |  |   H  |__--------------------| [___] |",
+  "  | ________|___H__/__|_____/[][]~\\_______|       |",
+  "  |/ |   |-----------I_____I [][] []  D   |=======|__",
+  "__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|__",
+  " |/-=|___|=    ||    ||    ||    |_____/~\\___/        |_D__D__D_|",
+  "  \\_/      \\O=====O=====O=====O_/      \\_/            \\_/   \\_/",
+];
 
 const Terminal = () => {
   const isMobile = useIsMobile();
@@ -666,18 +753,46 @@ const Terminal = () => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [suggestion, setSuggestion] = useState("");
   const [matrixBoost, setMatrixBoost] = useState(false);
+  const [soundOn, setSoundOn] = useState<boolean>(() => {
+    try { return localStorage.getItem(SOUND_KEY) === "1"; } catch { return false; }
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   const bootSequence = useMemo(() => buildBootSequence(isMobile), [isMobile]);
 
-  // Apply persisted theme on mount
+  // Apply persisted theme + accessible mode on mount
   useEffect(() => {
     const stored = localStorage.getItem(THEME_KEY) || "matrix";
     document.body.classList.remove("theme-amber", "theme-cyan");
     if (stored === "amber") document.body.classList.add("theme-amber");
     else if (stored === "cyan") document.body.classList.add("theme-cyan");
+    if (localStorage.getItem(ACCESSIBLE_KEY) === "1") {
+      document.body.classList.add("no-effects");
+    }
   }, []);
+
+  // Beep on keystroke when sound is on
+  const beep = useCallback((freq = 720, dur = 0.03, vol = 0.05) => {
+    if (!soundOn) return;
+    try {
+      if (!audioCtxRef.current) {
+        const AC = (window.AudioContext || (window as any).webkitAudioContext);
+        audioCtxRef.current = new AC();
+      }
+      const ctx = audioCtxRef.current!;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = freq;
+      gain.gain.value = vol;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch { /* ignore */ }
+  }, [soundOn]);
+
 
   // Persist history
   useEffect(() => {
@@ -968,58 +1083,150 @@ const Terminal = () => {
     ]);
   }, []);
 
+  const runSl = useCallback(() => {
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      ...SL_FRAMES.map((l) => ({ text: l, type: "ascii" as const })),
+      { text: "", type: "output" },
+      { text: "  🚂 Toot toot ! (oui, tu as tapé trop vite)", type: "highlight" },
+      { text: "", type: "output" },
+    ]);
+  }, []);
+
+
+  const runCommand = useCallback((cmd: string) => {
+    if (cmd.trim()) {
+      setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
+    }
+    setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
+
+    const result = processCommand(cmd, isMobile);
+    if (result.length === 1 && result[0].text === "__CLEAR__") { setLines([]); return; }
+    if (result.length === 1 && result[0].text === "__STATUS_LIVE__") { runStatusCommand(); return; }
+    if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) { runTraceroute(result[0].text.replace("__TRACEROUTE__", "")); return; }
+    if (result.length === 1 && result[0].text === "__HACK__") { runHack(); return; }
+    if (result.length === 1 && result[0].text === "__SL__") { runSl(); return; }
+    if (result.length === 1 && result[0].text === "__HISTORY__") {
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        ...(commandHistory.length === 0
+          ? [{ text: "  (vide)", type: "system" as const }]
+          : commandHistory.slice(0, 20).map((c, i) => ({
+              text: `  ${String(i + 1).padStart(3, " ")}  ${c}`,
+              type: "output" as const,
+            }))),
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__RESET__") {
+      try {
+        localStorage.removeItem(HISTORY_KEY);
+        localStorage.removeItem(THEME_KEY);
+        localStorage.removeItem(SOUND_KEY);
+        localStorage.removeItem(ACCESSIBLE_KEY);
+      } catch { /* ignore */ }
+      document.body.classList.remove("theme-amber", "theme-cyan", "no-effects");
+      setCommandHistory([]);
+      setSoundOn(false);
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: "  ✓ Préférences effacées (historique, thème, son, accessibilité).", type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__SOUND__")) {
+      const arg = result[0].text.replace("__SOUND__", "");
+      const on = arg === "on";
+      setSoundOn(on);
+      try { localStorage.setItem(SOUND_KEY, on ? "1" : "0"); } catch { /* ignore */ }
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  ✓ Son ${on ? "activé 🔊" : "désactivé 🔇"}`, type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__ACCESSIBLE__")) {
+      const arg = result[0].text.replace("__ACCESSIBLE__", "");
+      const current = document.body.classList.contains("no-effects");
+      const next = arg === "on" ? true : arg === "off" ? false : !current;
+      document.body.classList.toggle("no-effects", next);
+      try { localStorage.setItem(ACCESSIBLE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  ✓ Mode accessible ${next ? "ON — effets désactivés" : "OFF — effets activés"}`, type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__SHARE__")) {
+      const arg = result[0].text.replace("__SHARE__", "").trim();
+      const url = arg
+        ? `${window.location.origin}${window.location.pathname}?cmd=${encodeURIComponent(arg)}`
+        : `${window.location.origin}${window.location.pathname}`;
+      let copied = false;
+      try { navigator.clipboard?.writeText(url); copied = true; } catch { /* ignore */ }
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  🔗 ${url}`, type: "highlight" },
+        { text: copied ? "  ✓ Lien copié dans le presse-papier." : "  (copie manuelle)", type: "system" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__MATRIX_BOOST__") {
+      setMatrixBoost(true);
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: "  ▒▓█ Wake up, Neo... █▓▒", type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      setTimeout(() => setMatrixBoost(false), 5000);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__THEME__")) {
+      applyTheme(result[0].text.replace("__THEME__", ""));
+      return;
+    }
+    setLines((prev) => [...prev, ...result]);
+  }, [isMobile, runStatusCommand, runTraceroute, runHack, runSl, applyTheme, commandHistory]);
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!booted) return;
-
       const cmd = input;
       setInput("");
       setSuggestion("");
       setHistoryIndex(-1);
-
-      if (cmd.trim()) {
-        setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
-      }
-
-      setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
-
-      const result = processCommand(cmd, isMobile);
-      if (result.length === 1 && result[0].text === "__CLEAR__") {
-        setLines([]);
-        return;
-      }
-      if (result.length === 1 && result[0].text === "__STATUS_LIVE__") {
-        runStatusCommand();
-        return;
-      }
-      if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) {
-        runTraceroute(result[0].text.replace("__TRACEROUTE__", ""));
-        return;
-      }
-      if (result.length === 1 && result[0].text === "__HACK__") {
-        runHack();
-        return;
-      }
-      if (result.length === 1 && result[0].text === "__MATRIX_BOOST__") {
-        setMatrixBoost(true);
-        setLines((prev) => [
-          ...prev,
-          { text: "", type: "output" },
-          { text: "  ▒▓█ Wake up, Neo... █▓▒", type: "highlight" },
-          { text: "", type: "output" },
-        ]);
-        setTimeout(() => setMatrixBoost(false), 5000);
-        return;
-      }
-      if (result.length === 1 && result[0].text.startsWith("__THEME__")) {
-        applyTheme(result[0].text.replace("__THEME__", ""));
-        return;
-      }
-      setLines((prev) => [...prev, ...result]);
+      runCommand(cmd);
     },
-    [input, booted, isMobile, runStatusCommand, runTraceroute, runHack, applyTheme]
+    [input, booted, runCommand]
   );
+
+  // Execute ?cmd=... from URL once after boot
+  const urlCmdRanRef = useRef(false);
+  useEffect(() => {
+    if (!booted || urlCmdRanRef.current) return;
+    urlCmdRanRef.current = true;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const c = params.get("cmd");
+      if (c) {
+        setTimeout(() => runCommand(c), 200);
+      }
+    } catch { /* ignore */ }
+  }, [booted, runCommand]);
+
 
   // Tab completion
   const computeCompletion = useCallback((value: string): string => {
@@ -1156,14 +1363,24 @@ const Terminal = () => {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
+                  onChange={(e) => { setInput(e.target.value); beep(720, 0.02, 0.04); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") beep(440, 0.05, 0.05); handleKeyDown(e); }}
+                  onFocus={() => {
+                    if (isMobile) {
+                      setTimeout(() => {
+                        inputRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+                      }, 250);
+                    }
+                  }}
                   className="w-full bg-transparent text-foreground text-glow outline-none caret-transparent font-mono text-sm relative"
                   spellCheck={false}
                   autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   aria-label="Terminal command input"
                   autoFocus
                 />
+
                 <span
                   className="absolute top-0 animate-cursor-blink bg-foreground"
                   style={{
