@@ -2,8 +2,15 @@ import { useEffect, useRef } from "react";
 
 const CHARS = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF";
 
-const MatrixRain = () => {
+interface MatrixRainProps {
+  boost?: boolean;
+}
+
+const MatrixRain = ({ boost = false }: MatrixRainProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const boostRef = useRef(boost);
+
+  useEffect(() => { boostRef.current = boost; }, [boost]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,10 +37,10 @@ const MatrixRain = () => {
     window.addEventListener("resize", resize);
 
     const draw = () => {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      const isBoost = boostRef.current;
+      ctx.fillStyle = isBoost ? "rgba(0, 0, 0, 0.03)" : "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#00ff41";
       ctx.font = `${fontSize}px monospace`;
 
       for (let i = 0; i < drops.length; i++) {
@@ -41,14 +48,13 @@ const MatrixRain = () => {
         const x = i * fontSize;
         const y = drops[i] * fontSize;
 
-        // Brighter head character
-        ctx.fillStyle = `rgba(0, 255, 65, ${0.4 + Math.random() * 0.6})`;
+        ctx.fillStyle = `rgba(0, 255, 65, ${(isBoost ? 0.7 : 0.4) + Math.random() * 0.6})`;
         ctx.fillText(char, x, y);
 
-        if (y > canvas.height && Math.random() > 0.975) {
+        if (y > canvas.height && Math.random() > (isBoost ? 0.9 : 0.975)) {
           drops[i] = 0;
         }
-        drops[i]++;
+        drops[i] += isBoost ? 2 : 1;
       }
 
       animId = requestAnimationFrame(draw);
@@ -65,7 +71,7 @@ const MatrixRain = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full opacity-15 pointer-events-none"
+      className="absolute inset-0 w-full h-full opacity-15 pointer-events-none matrix-rain-bg"
       style={{ zIndex: 0 }}
     />
   );
