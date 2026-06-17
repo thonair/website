@@ -176,6 +176,26 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const raw = cmd.trim();
   const lines: OutputLine[] = [];
 
+  // Compact header helpers
+  const headerBox = (title: string): OutputLine[] => {
+    if (mobile) {
+      return [
+        { text: `╭─ ${title} ─╮`.padEnd(0, ""), type: "highlight" },
+      ];
+    }
+    const inner = ` ${title} `;
+    const pad = 45 - inner.length;
+    const left = Math.floor(pad / 2);
+    const right = pad - left;
+    return [
+      { text: "┌─────────────────────────────────────────────┐", type: "highlight" },
+      { text: `│${" ".repeat(left)}${inner}${" ".repeat(right)}│`, type: "highlight" },
+      { text: "└─────────────────────────────────────────────┘", type: "highlight" },
+    ];
+  };
+  const headerBoxClose = (): OutputLine[] => mobile ? [{ text: "╰─────────╯", type: "highlight" }] : [];
+
+
   if (trimmed === "help") {
     lines.push({ text: "", type: "output" });
     if (mobile) {
