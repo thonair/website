@@ -37,7 +37,7 @@ const buildBootSequence = (mobile: boolean): OutputLine[] => [
   { text: "  Vérification des pare-feux .......................... [OK]", type: "system", delay: 150 },
   { text: "  Chargement des outils de pentest .................... [OK]", type: "system", delay: 200 },
   { text: "", type: "system" },
-  { text: "  [████████████████████████████████████████████████] 100%", type: "highlight", delay: 600 },
+  { text: "__PROGRESS__", type: "highlight", delay: 600 },
   { text: "", type: "system" },
   { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
   { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
