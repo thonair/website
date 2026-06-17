@@ -45,6 +45,50 @@
     --terminal-cyan: 180 100% 50%;
     --terminal-red: 0 100% 50%;
   }
+
+  /* Theme: amber (vintage CRT) */
+  .theme-amber {
+    --foreground: 38 100% 55%;
+    --primary: 38 100% 55%;
+    --primary-foreground: 220 20% 6%;
+    --secondary: 38 60% 25%;
+    --secondary-foreground: 38 100% 70%;
+    --muted-foreground: 38 40% 40%;
+    --accent: 25 100% 55%;
+    --border: 38 40% 18%;
+    --ring: 38 100% 55%;
+    --terminal-glow: 38 100% 55%;
+    --terminal-cursor: 38 100% 55%;
+  }
+
+  /* Theme: cyan (Tron) */
+  .theme-cyan {
+    --foreground: 180 100% 55%;
+    --primary: 180 100% 55%;
+    --primary-foreground: 220 20% 6%;
+    --secondary: 180 60% 25%;
+    --secondary-foreground: 180 100% 70%;
+    --muted-foreground: 180 40% 45%;
+    --accent: 200 100% 55%;
+    --border: 180 40% 18%;
+    --ring: 180 100% 55%;
+    --terminal-glow: 180 100% 55%;
+    --terminal-cursor: 180 100% 55%;
+  }
+
+  /* Reduced motion / no-effects */
+  .no-effects .crt-scanlines,
+  .no-effects .matrix-rain-bg { display: none !important; }
+  .no-effects .crt-flicker { animation: none !important; }
+  .no-effects .animate-fade-in-line { animation: none !important; }
+  .no-effects .text-glow,
+  .no-effects .text-glow-strong { text-shadow: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crt-flicker { animation: none !important; }
+    .animate-fade-in-line { animation: none !important; }
+    .animate-cursor-blink { animation: none !important; opacity: 1 !important; }
+  }
 }
 
 @layer base {
