@@ -401,22 +401,64 @@ const Terminal = () => {
   // Boot sequence
   useEffect(() => {
     let i = 0;
+    let cancelled = false;
     setLines([]);
     setBooted(false);
     setBooting(true);
-    const bootTimer = setInterval(() => {
-      if (i < bootSequence.length) {
-        const currentLine = bootSequence[i];
-        setLines((prev) => [...prev, currentLine]);
-        i++;
-      } else {
-        clearInterval(bootTimer);
+
+    const buildProgressLine = (pct: number) => {
+      const total = isMobile ? 24 : 48;
+      const filled = Math.round((pct / 100) * total);
+      const bar = "█".repeat(filled) + "░".repeat(total - filled);
+      return `  [${bar}] ${String(pct).padStart(3, " ")}%`;
+    };
+
+    const animateProgress = (onDone: () => void) => {
+      // Push initial 0% line
+      setLines((prev) => [...prev, { text: buildProgressLine(0), type: "highlight" }]);
+      let pct = 0;
+      const step = 4;
+      const tick = setInterval(() => {
+        if (cancelled) {
+          clearInterval(tick);
+          return;
+        }
+        pct = Math.min(100, pct + step);
+        setLines((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { text: buildProgressLine(pct), type: "highlight" };
+          return next;
+        });
+        if (pct >= 100) {
+          clearInterval(tick);
+          setTimeout(onDone, 250);
+        }
+      }, 60);
+    };
+
+    const advance = () => {
+      if (cancelled) return;
+      if (i >= bootSequence.length) {
         setBooted(true);
         setBooting(false);
+        return;
       }
-    }, 80);
-    return () => clearInterval(bootTimer);
-  }, [bootSequence]);
+      const currentLine = bootSequence[i];
+      i++;
+      if (currentLine.text === "__PROGRESS__") {
+        animateProgress(advance);
+        return;
+      }
+      setLines((prev) => [...prev, currentLine]);
+      setTimeout(advance, 80);
+    };
+
+    const startTimer = setTimeout(advance, 80);
+    return () => {
+      cancelled = true;
+      clearTimeout(startTimer);
+    };
+  }, [bootSequence, isMobile]);
 
   // Auto scroll
   useEffect(() => {
