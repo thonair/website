@@ -1,0 +1,19 @@
+{
+  "name": "Bera Tcholakov — Terminal Cybersécurité",
+  "short_name": "ThonAir",
+  "description": "Portfolio terminal de Mustafa Bera Tcholakov — étudiant en cybersécurité à Bruxelles.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0f0a",
+  "theme_color": "#0a0f0a",
+  "lang": "fr-BE",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
