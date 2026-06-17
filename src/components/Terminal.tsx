@@ -176,24 +176,24 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const raw = cmd.trim();
   const lines: OutputLine[] = [];
 
-  // Compact header helpers
-  const headerBox = (title: string): OutputLine[] => {
+  // Compact header helper: thin underline on mobile, ASCII box on desktop.
+  const sectionHeader = (title: string): OutputLine[] => {
     if (mobile) {
       return [
-        { text: `╭─ ${title} ─╮`.padEnd(0, ""), type: "highlight" },
+        { text: `─── ${title} ───`, type: "highlight" },
       ];
     }
     const inner = ` ${title} `;
     const pad = 45 - inner.length;
-    const left = Math.floor(pad / 2);
-    const right = pad - left;
+    const left = Math.max(0, Math.floor(pad / 2));
+    const right = Math.max(0, pad - left);
     return [
       { text: "┌─────────────────────────────────────────────┐", type: "highlight" },
       { text: `│${" ".repeat(left)}${inner}${" ".repeat(right)}│`, type: "highlight" },
       { text: "└─────────────────────────────────────────────┘", type: "highlight" },
     ];
   };
-  const headerBoxClose = (): OutputLine[] => mobile ? [{ text: "╰─────────╯", type: "highlight" }] : [];
+
 
 
   if (trimmed === "help") {
