@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import MatrixRain from "./MatrixRain";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -37,7 +37,7 @@ const buildBootSequence = (mobile: boolean): OutputLine[] => [
   { text: "  Vérification des pare-feux .......................... [OK]", type: "system", delay: 150 },
   { text: "  Chargement des outils de pentest .................... [OK]", type: "system", delay: 200 },
   { text: "", type: "system" },
-  { text: "  [████████████████████████████████████████████████] 100%", type: "highlight", delay: 600 },
+  { text: "__PROGRESS__", type: "highlight", delay: 600 },
   { text: "", type: "system" },
   { text: "  ✓ System Ready. Bienvenue, visiteur.", type: "highlight", delay: 300 },
   { text: "  Tape 'help' pour voir les commandes disponibles.", type: "system" },
@@ -385,6 +385,37 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   return lines;
 }
 
+// Render a terminal line, turning *.thonair.com hostnames into clickable links
+function renderLineContent(text: string): React.ReactNode {
+  if (!text) return "\u00A0";
+  const regex = /([a-z0-9-]+\.thonair\.com)/gi;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const host = match[0];
+    parts.push(
+      <a
+        key={`lnk-${key++}`}
+        href={`https://${host}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline decoration-dotted underline-offset-2 text-glow hover:text-primary transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {host}
+      </a>
+    );
+    lastIndex = match.index + host.length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts.length ? parts : text;
+}
+
 const Terminal = () => {
   const isMobile = useIsMobile();
   const [lines, setLines] = useState<OutputLine[]>([]);
@@ -401,22 +432,64 @@ const Terminal = () => {
   // Boot sequence
   useEffect(() => {
     let i = 0;
+    let cancelled = false;
     setLines([]);
     setBooted(false);
     setBooting(true);
-    const bootTimer = setInterval(() => {
-      if (i < bootSequence.length) {
-        const currentLine = bootSequence[i];
-        setLines((prev) => [...prev, currentLine]);
-        i++;
-      } else {
-        clearInterval(bootTimer);
+
+    const buildProgressLine = (pct: number) => {
+      const total = isMobile ? 24 : 48;
+      const filled = Math.round((pct / 100) * total);
+      const bar = "█".repeat(filled) + "░".repeat(total - filled);
+      return `  [${bar}] ${String(pct).padStart(3, " ")}%`;
+    };
+
+    const animateProgress = (onDone: () => void) => {
+      // Push initial 0% line
+      setLines((prev) => [...prev, { text: buildProgressLine(0), type: "highlight" }]);
+      let pct = 0;
+      const step = 4;
+      const tick = setInterval(() => {
+        if (cancelled) {
+          clearInterval(tick);
+          return;
+        }
+        pct = Math.min(100, pct + step);
+        setLines((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { text: buildProgressLine(pct), type: "highlight" };
+          return next;
+        });
+        if (pct >= 100) {
+          clearInterval(tick);
+          setTimeout(onDone, 250);
+        }
+      }, 60);
+    };
+
+    const advance = () => {
+      if (cancelled) return;
+      if (i >= bootSequence.length) {
         setBooted(true);
         setBooting(false);
+        return;
       }
-    }, 80);
-    return () => clearInterval(bootTimer);
-  }, [bootSequence]);
+      const currentLine = bootSequence[i];
+      i++;
+      if (currentLine.text === "__PROGRESS__") {
+        animateProgress(advance);
+        return;
+      }
+      setLines((prev) => [...prev, currentLine]);
+      setTimeout(advance, 80);
+    };
+
+    const startTimer = setTimeout(advance, 80);
+    return () => {
+      cancelled = true;
+      clearTimeout(startTimer);
+    };
+  }, [bootSequence, isMobile]);
 
   // Auto scroll
   useEffect(() => {
@@ -657,7 +730,7 @@ const Terminal = () => {
               className={`${getLineColor(line.type)} whitespace-pre-wrap animate-fade-in-line`}
               style={{ animationDelay: booting ? `${i * 20}ms` : "0ms" }}
             >
-              {line.text || "\u00A0"}
+              {renderLineContent(line.text)}
             </div>
           ))}
 
