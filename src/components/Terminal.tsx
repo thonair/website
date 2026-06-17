@@ -1083,58 +1083,166 @@ const Terminal = () => {
     ]);
   }, []);
 
+  const runSl = useCallback(() => {
+    setLines((prev) => [...prev, { text: "", type: "output" }]);
+    let offset = -SL_FRAMES[0].length;
+    const max = 30;
+    const tick = () => {
+      const pad = Math.max(0, offset);
+      setLines((prev) => {
+        const next = [...prev];
+        // append frame block
+        SL_FRAMES.forEach((line) => {
+          next.push({ text: " ".repeat(pad) + line.slice(Math.max(0, -offset)), type: "ascii" });
+        });
+        next.push({ text: "", type: "output" });
+        return next;
+      });
+      offset += 8;
+      if (offset < max) setTimeout(tick, 150);
+      else {
+        setLines((prev) => [
+          ...prev,
+          { text: "  🚂 Toot toot !", type: "highlight" },
+          { text: "", type: "output" },
+        ]);
+      }
+    };
+    tick();
+  }, []);
+
+  const runCommand = useCallback((cmd: string) => {
+    if (cmd.trim()) {
+      setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
+    }
+    setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
+
+    const result = processCommand(cmd, isMobile);
+    if (result.length === 1 && result[0].text === "__CLEAR__") { setLines([]); return; }
+    if (result.length === 1 && result[0].text === "__STATUS_LIVE__") { runStatusCommand(); return; }
+    if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) { runTraceroute(result[0].text.replace("__TRACEROUTE__", "")); return; }
+    if (result.length === 1 && result[0].text === "__HACK__") { runHack(); return; }
+    if (result.length === 1 && result[0].text === "__SL__") { runSl(); return; }
+    if (result.length === 1 && result[0].text === "__HISTORY__") {
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        ...(commandHistory.length === 0
+          ? [{ text: "  (vide)", type: "system" as const }]
+          : commandHistory.slice(0, 20).map((c, i) => ({
+              text: `  ${String(i + 1).padStart(3, " ")}  ${c}`,
+              type: "output" as const,
+            }))),
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__RESET__") {
+      try {
+        localStorage.removeItem(HISTORY_KEY);
+        localStorage.removeItem(THEME_KEY);
+        localStorage.removeItem(SOUND_KEY);
+        localStorage.removeItem(ACCESSIBLE_KEY);
+      } catch { /* ignore */ }
+      document.body.classList.remove("theme-amber", "theme-cyan", "no-effects");
+      setCommandHistory([]);
+      setSoundOn(false);
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: "  ✓ Préférences effacées (historique, thème, son, accessibilité).", type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__SOUND__")) {
+      const arg = result[0].text.replace("__SOUND__", "");
+      const on = arg === "on";
+      setSoundOn(on);
+      try { localStorage.setItem(SOUND_KEY, on ? "1" : "0"); } catch { /* ignore */ }
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  ✓ Son ${on ? "activé 🔊" : "désactivé 🔇"}`, type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__ACCESSIBLE__")) {
+      const arg = result[0].text.replace("__ACCESSIBLE__", "");
+      const current = document.body.classList.contains("no-effects");
+      const next = arg === "on" ? true : arg === "off" ? false : !current;
+      document.body.classList.toggle("no-effects", next);
+      try { localStorage.setItem(ACCESSIBLE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  ✓ Mode accessible ${next ? "ON — effets désactivés" : "OFF — effets activés"}`, type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__SHARE__")) {
+      const arg = result[0].text.replace("__SHARE__", "").trim();
+      const url = arg
+        ? `${window.location.origin}${window.location.pathname}?cmd=${encodeURIComponent(arg)}`
+        : `${window.location.origin}${window.location.pathname}`;
+      let copied = false;
+      try { navigator.clipboard?.writeText(url); copied = true; } catch { /* ignore */ }
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: `  🔗 ${url}`, type: "highlight" },
+        { text: copied ? "  ✓ Lien copié dans le presse-papier." : "  (copie manuelle)", type: "system" },
+        { text: "", type: "output" },
+      ]);
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__MATRIX_BOOST__") {
+      setMatrixBoost(true);
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: "  ▒▓█ Wake up, Neo... █▓▒", type: "highlight" },
+        { text: "", type: "output" },
+      ]);
+      setTimeout(() => setMatrixBoost(false), 5000);
+      return;
+    }
+    if (result.length === 1 && result[0].text.startsWith("__THEME__")) {
+      applyTheme(result[0].text.replace("__THEME__", ""));
+      return;
+    }
+    setLines((prev) => [...prev, ...result]);
+  }, [isMobile, runStatusCommand, runTraceroute, runHack, runSl, applyTheme, commandHistory]);
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (!booted) return;
-
       const cmd = input;
       setInput("");
       setSuggestion("");
       setHistoryIndex(-1);
-
-      if (cmd.trim()) {
-        setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
-      }
-
-      setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
-
-      const result = processCommand(cmd, isMobile);
-      if (result.length === 1 && result[0].text === "__CLEAR__") {
-        setLines([]);
-        return;
-      }
-      if (result.length === 1 && result[0].text === "__STATUS_LIVE__") {
-        runStatusCommand();
-        return;
-      }
-      if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) {
-        runTraceroute(result[0].text.replace("__TRACEROUTE__", ""));
-        return;
-      }
-      if (result.length === 1 && result[0].text === "__HACK__") {
-        runHack();
-        return;
-      }
-      if (result.length === 1 && result[0].text === "__MATRIX_BOOST__") {
-        setMatrixBoost(true);
-        setLines((prev) => [
-          ...prev,
-          { text: "", type: "output" },
-          { text: "  ▒▓█ Wake up, Neo... █▓▒", type: "highlight" },
-          { text: "", type: "output" },
-        ]);
-        setTimeout(() => setMatrixBoost(false), 5000);
-        return;
-      }
-      if (result.length === 1 && result[0].text.startsWith("__THEME__")) {
-        applyTheme(result[0].text.replace("__THEME__", ""));
-        return;
-      }
-      setLines((prev) => [...prev, ...result]);
+      runCommand(cmd);
     },
-    [input, booted, isMobile, runStatusCommand, runTraceroute, runHack, applyTheme]
+    [input, booted, runCommand]
   );
+
+  // Execute ?cmd=... from URL once after boot
+  const urlCmdRanRef = useRef(false);
+  useEffect(() => {
+    if (!booted || urlCmdRanRef.current) return;
+    urlCmdRanRef.current = true;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const c = params.get("cmd");
+      if (c) {
+        setTimeout(() => runCommand(c), 200);
+      }
+    } catch { /* ignore */ }
+  }, [booted, runCommand]);
+
 
   // Tab completion
   const computeCompletion = useCallback((value: string): string => {
