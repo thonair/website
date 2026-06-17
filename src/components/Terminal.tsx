@@ -170,32 +170,64 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
 
   if (trimmed === "help") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "╔══════════════════════════════════════════════════╗", type: "highlight" });
-    lines.push({ text: "║              COMMANDES DISPONIBLES               ║", type: "highlight" });
-    lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
-    lines.push({ text: "║  ls              → liste les fichiers            ║", type: "output" });
-    lines.push({ text: "║  cat [fichier]   → affiche le contenu            ║", type: "output" });
-    lines.push({ text: "║  whoami          → qui suis-je ?                 ║", type: "output" });
-    lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
-    lines.push({ text: "║  skills          → compétences techniques        ║", type: "output" });
-    lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
-    lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
-    lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
-    lines.push({ text: "║  status          → état live des services        ║", type: "output" });
-    lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
-    lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
-    lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
-    lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
-    lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
-    lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
-    lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
-    lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
-    lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
-    lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
-    lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
-    lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
-    lines.push({ text: "║  💡 Tab = autocomplétion  ·  ↑/↓ = historique    ║", type: "system" });
-    lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
+    if (mobile) {
+      lines.push({ text: "╭─ COMMANDES ─────────────╮", type: "highlight" });
+      const rows: [string, string][] = [
+        ["ls", "fichiers"],
+        ["cat [f]", "contenu"],
+        ["whoami", "identité"],
+        ["banner", "logo"],
+        ["skills", "compétences"],
+        ["certs", "certifs"],
+        ["infra", "homelab"],
+        ["network", "schéma net"],
+        ["status", "état live"],
+        ["ping [h]", "ping host"],
+        ["traceroute", "trace route"],
+        ["fortune", "citation"],
+        ["date", "horloge"],
+        ["neofetch", "sys info"],
+        ["theme [n]", "matrix/amber/cyan"],
+        ["matrix", "easter egg"],
+        ["hack", "port scan"],
+        ["coffee", "☕"],
+        ["clear", "efface"],
+      ];
+      rows.forEach(([cmd, desc]) => {
+        lines.push({ text: `  ${cmd.padEnd(12, " ")}${desc}`, type: "output" });
+      });
+      lines.push({ text: "", type: "output" });
+      lines.push({ text: "  Tab = autocomplete", type: "system" });
+      lines.push({ text: "  ↑/↓ = historique", type: "system" });
+      lines.push({ text: "╰─────────────────────────╯", type: "highlight" });
+    } else {
+      lines.push({ text: "╔══════════════════════════════════════════════════╗", type: "highlight" });
+      lines.push({ text: "║              COMMANDES DISPONIBLES               ║", type: "highlight" });
+      lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
+      lines.push({ text: "║  ls              → liste les fichiers            ║", type: "output" });
+      lines.push({ text: "║  cat [fichier]   → affiche le contenu            ║", type: "output" });
+      lines.push({ text: "║  whoami          → qui suis-je ?                 ║", type: "output" });
+      lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
+      lines.push({ text: "║  skills          → compétences techniques        ║", type: "output" });
+      lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
+      lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
+      lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
+      lines.push({ text: "║  status          → état live des services        ║", type: "output" });
+      lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
+      lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
+      lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
+      lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
+      lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
+      lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
+      lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
+      lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
+      lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
+      lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
+      lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
+      lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
+      lines.push({ text: "║  💡 Tab = autocomplétion  ·  ↑/↓ = historique    ║", type: "system" });
+      lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
+    }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "ls") {
     lines.push({ text: "", type: "output" });
