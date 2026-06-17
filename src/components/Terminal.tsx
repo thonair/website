@@ -196,9 +196,16 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
         ["date", "horloge"],
         ["neofetch", "sys info"],
         ["theme [n]", "matrix/amber/cyan"],
+        ["sound [on/off]", "bips"],
+        ["accessible", "mode sobre"],
+        ["share [cmd]", "lien direct"],
+        ["history", "historique"],
+        ["echo [txt]", "imprime"],
         ["matrix", "easter egg"],
+        ["sl", "easter egg"],
         ["hack", "port scan"],
         ["coffee", "☕"],
+        ["reset", "raz"],
         ["clear", "efface"],
       ];
       rows.forEach(([cmd, desc]) => {
