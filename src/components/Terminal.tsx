@@ -1084,32 +1084,16 @@ const Terminal = () => {
   }, []);
 
   const runSl = useCallback(() => {
-    setLines((prev) => [...prev, { text: "", type: "output" }]);
-    let offset = -SL_FRAMES[0].length;
-    const max = 30;
-    const tick = () => {
-      const pad = Math.max(0, offset);
-      setLines((prev) => {
-        const next = [...prev];
-        // append frame block
-        SL_FRAMES.forEach((line) => {
-          next.push({ text: " ".repeat(pad) + line.slice(Math.max(0, -offset)), type: "ascii" });
-        });
-        next.push({ text: "", type: "output" });
-        return next;
-      });
-      offset += 8;
-      if (offset < max) setTimeout(tick, 150);
-      else {
-        setLines((prev) => [
-          ...prev,
-          { text: "  🚂 Toot toot !", type: "highlight" },
-          { text: "", type: "output" },
-        ]);
-      }
-    };
-    tick();
+    setLines((prev) => [
+      ...prev,
+      { text: "", type: "output" },
+      ...SL_FRAMES.map((l) => ({ text: l, type: "ascii" as const })),
+      { text: "", type: "output" },
+      { text: "  🚂 Toot toot ! (oui, tu as tapé trop vite)", type: "highlight" },
+      { text: "", type: "output" },
+    ]);
   }, []);
+
 
   const runCommand = useCallback((cmd: string) => {
     if (cmd.trim()) {
