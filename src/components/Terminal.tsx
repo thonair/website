@@ -278,9 +278,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat about" || trimmed === "cat about.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│              À PROPOS DE BERA               │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("À PROPOS DE BERA").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Nom       : Mustafa Bera Tcholakov", type: "output" });
     lines.push({ text: "  Titre     : Étudiant en Cybersécurité", type: "output" });
@@ -295,9 +293,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat services" || trimmed === "cat services.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│             SERVICES PROPOSÉS                │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("SERVICES PROPOSÉS").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🔍  Analyse de sécurité réseau", type: "output" });
     lines.push({ text: "      Audit complet de votre infrastructure", type: "system" });
@@ -317,9 +313,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat contact" || trimmed === "cat contact.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│                 CONTACT                      │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("CONTACT").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  📧  eslembera@gmail.com", type: "output" });
     lines.push({ text: "  📞  +32 0486 60 79 96", type: "output" });
@@ -333,9 +327,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "cat projets" || trimmed === "cat projets.txt") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│               PROJETS & LABS                 │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("PROJETS & LABS").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     Object.entries(PROJECTS).forEach(([id, p]) => {
       lines.push({ text: `  [${id}]  ${p.title}`, type: "output" });
@@ -351,9 +343,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     if (!p) {
       lines.push({ text: `  cat: projets/${id}: aucun projet`, type: "error" });
     } else {
-      lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-      lines.push({ text: `│  PROJET ${id} — ${p.title.padEnd(28).slice(0, 28)} │`, type: "highlight" });
-      lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+      sectionHeader(`PROJET ${id} — ${p.title}`).forEach((l) => lines.push(l));
       lines.push({ text: "", type: "output" });
       lines.push({ text: `  Stack : ${p.stack.join(", ")}`, type: "output" });
       lines.push({ text: "", type: "output" });
@@ -376,9 +366,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "skills") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│           COMPÉTENCES TECHNIQUES             │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("COMPÉTENCES TECHNIQUES").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  Sécurité    ████████████████████░░  90%", type: "output" });
     lines.push({ text: "  Réseau      ██████████████████░░░░  80%", type: "output" });
@@ -392,9 +380,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "certifications" || trimmed === "certs") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "┌─────────────────────────────────────────────┐", type: "highlight" });
-    lines.push({ text: "│         CERTIFICATIONS & FORMATIONS          │", type: "highlight" });
-    lines.push({ text: "└─────────────────────────────────────────────┘", type: "highlight" });
+    sectionHeader("CERTIFICATIONS & FORMATIONS").forEach((l) => lines.push(l));
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🎓  Étudiant en Cybersécurité", type: "output" });
     lines.push({ text: "  📚  En cours de certification...", type: "system" });
