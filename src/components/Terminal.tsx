@@ -235,8 +235,15 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
       lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
       lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
+      lines.push({ text: "║  sl              → easter egg 🚂                 ║", type: "output" });
       lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
       lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
+      lines.push({ text: "║  sound [on|off]  → bips de touche                ║", type: "output" });
+      lines.push({ text: "║  accessible      → mode sobre (no effects)       ║", type: "output" });
+      lines.push({ text: "║  share [cmd]     → lien direct ?cmd=...          ║", type: "output" });
+      lines.push({ text: "║  history         → dernières commandes           ║", type: "output" });
+      lines.push({ text: "║  echo [texte]    → imprime du texte              ║", type: "output" });
+      lines.push({ text: "║  reset           → raz historique & thème        ║", type: "output" });
       lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
       lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
       lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
