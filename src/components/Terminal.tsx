@@ -720,6 +720,21 @@ function renderLineContent(text: string): React.ReactNode {
 const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const HISTORY_KEY = "thonair_cmd_history";
 const THEME_KEY = "thonair_theme";
+const SOUND_KEY = "thonair_sound";
+const ACCESSIBLE_KEY = "thonair_accessible";
+
+const SL_FRAMES = [
+  "      ====        ________                ___________",
+  "  _D _|  |_______/        \\__I_I_____===__|_________|",
+  "   |(_)---  |   H\\________/ |   |        =|___ ___|",
+  "   /     |  |   H  |  |     |   |         ||_| |_||",
+  "  |      |  |   H  |__--------------------| [___] |",
+  "  | ________|___H__/__|_____/[][]~\\_______|       |",
+  "  |/ |   |-----------I_____I [][] []  D   |=======|__",
+  "__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|__",
+  " |/-=|___|=    ||    ||    ||    |_____/~\\___/        |_D__D__D_|",
+  "  \\_/      \\O=====O=====O=====O_/      \\_/            \\_/   \\_/",
+];
 
 const Terminal = () => {
   const isMobile = useIsMobile();
@@ -738,18 +753,46 @@ const Terminal = () => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [suggestion, setSuggestion] = useState("");
   const [matrixBoost, setMatrixBoost] = useState(false);
+  const [soundOn, setSoundOn] = useState<boolean>(() => {
+    try { return localStorage.getItem(SOUND_KEY) === "1"; } catch { return false; }
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   const bootSequence = useMemo(() => buildBootSequence(isMobile), [isMobile]);
 
-  // Apply persisted theme on mount
+  // Apply persisted theme + accessible mode on mount
   useEffect(() => {
     const stored = localStorage.getItem(THEME_KEY) || "matrix";
     document.body.classList.remove("theme-amber", "theme-cyan");
     if (stored === "amber") document.body.classList.add("theme-amber");
     else if (stored === "cyan") document.body.classList.add("theme-cyan");
+    if (localStorage.getItem(ACCESSIBLE_KEY) === "1") {
+      document.body.classList.add("no-effects");
+    }
   }, []);
+
+  // Beep on keystroke when sound is on
+  const beep = useCallback((freq = 720, dur = 0.03, vol = 0.05) => {
+    if (!soundOn) return;
+    try {
+      if (!audioCtxRef.current) {
+        const AC = (window.AudioContext || (window as any).webkitAudioContext);
+        audioCtxRef.current = new AC();
+      }
+      const ctx = audioCtxRef.current!;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = freq;
+      gain.gain.value = vol;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch { /* ignore */ }
+  }, [soundOn]);
+
 
   // Persist history
   useEffect(() => {
