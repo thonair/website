@@ -385,6 +385,37 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   return lines;
 }
 
+// Render a terminal line, turning *.thonair.com hostnames into clickable links
+function renderLineContent(text: string): React.ReactNode {
+  if (!text) return "\u00A0";
+  const regex = /([a-z0-9-]+\.thonair\.com)/gi;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const host = match[0];
+    parts.push(
+      <a
+        key={`lnk-${key++}`}
+        href={`https://${host}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline decoration-dotted underline-offset-2 text-glow hover:text-primary transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {host}
+      </a>
+    );
+    lastIndex = match.index + host.length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts.length ? parts : text;
+}
+
 const Terminal = () => {
   const isMobile = useIsMobile();
   const [lines, setLines] = useState<OutputLine[]>([]);
