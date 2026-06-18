@@ -859,6 +859,7 @@ const Terminal = () => {
   const isMobile = useIsMobile();
   const [lines, setLines] = useState<OutputLine[]>([]);
   const [input, setInput] = useState("");
+  const [caretPos, setCaretPos] = useState(0);
   const [booted, setBooted] = useState(false);
   const [booting, setBooting] = useState(true);
   const [commandHistory, setCommandHistory] = useState<string[]>(() => {
