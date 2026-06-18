@@ -163,13 +163,70 @@ const PROJECTS: Record<
 };
 
 const COMMANDS = [
-  "help", "ls", "cat", "whoami", "banner", "skills", "certifications", "certs",
+  "help", "ls", "cat", "cd", "pwd", "whoami", "banner", "skills", "certifications", "certs",
   "infra", "network", "net", "status", "ping", "traceroute", "tracert",
-  "fortune", "date", "neofetch", "theme", "matrix", "hack", "coffee",
+  "fortune", "date", "clock", "neofetch", "theme", "matrix", "hack", "coffee",
   "clear", "sudo", "sl", "sound", "accessible", "echo", "history", "reset", "share",
 ];
 
-const FILES = ["about", "services", "contact", "projets", "projets/01", "projets/02", "projets/03"];
+const FILES = ["about", "services", "contact", "readme", "projets", "projets/01", "projets/02", "projets/03", "projets/readme"];
+
+// Virtual filesystem (cwd-aware)
+type FsDir = { dirs: string[]; files: string[] };
+const FS_TREE: Record<string, FsDir> = {
+  "~": { dirs: ["projets"], files: ["about.txt", "services.txt", "contact.txt", "readme.txt"] },
+  "~/projets": { dirs: [], files: ["01.txt", "02.txt", "03.txt", "readme.txt"] },
+};
+
+const README_HOME = [
+  "  ╭─ README.TXT ──────────────────────────╮",
+  "  │  Bienvenue dans le terminal ThonAir.  │",
+  "  ╰───────────────────────────────────────╯",
+  "",
+  "  Tu navigues dans un système de fichiers simulé.",
+  "  Commandes utiles :",
+  "    ls            → liste le dossier courant",
+  "    cd projets    → entre dans un dossier",
+  "    cd ..         → remonte",
+  "    cat <fichier> → affiche un fichier",
+  "    pwd           → chemin actuel",
+  "",
+  "  Tape 'help' pour la liste complète.",
+];
+
+const README_PROJETS = [
+  "  ╭─ projets/README.TXT ──────────────────╮",
+  "  │  Index des projets & labs.            │",
+  "  ╰───────────────────────────────────────╯",
+  "",
+  "  01.txt → Home Lab (Proxmox + Kali)",
+  "  02.txt → CTF Challenges",
+  "  03.txt → Sécurisation Cloud",
+  "",
+  "  Tape 'cat 01.txt' depuis ce dossier",
+  "  ou 'cat projets/01' depuis la racine.",
+];
+
+// Resolve a path argument given a cwd. Returns canonical path or null.
+function resolvePath(cwd: string, arg: string): string | null {
+  if (!arg || arg === "~" || arg === "/") return "~";
+  let base: string;
+  if (arg.startsWith("~/") || arg.startsWith("/")) {
+    base = "~";
+    arg = arg.replace(/^(~\/|\/)/, "");
+  } else {
+    base = cwd;
+  }
+  const parts = arg.split("/").filter(Boolean);
+  const stack = base === "~" ? [] : base.replace(/^~\/?/, "").split("/").filter(Boolean);
+  for (const p of parts) {
+    if (p === "." || p === "") continue;
+    if (p === "..") { stack.pop(); continue; }
+    stack.push(p);
+  }
+  return stack.length === 0 ? "~" : "~/" + stack.join("/");
+}
+
 
 function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
   const trimmed = cmd.trim().toLowerCase();
