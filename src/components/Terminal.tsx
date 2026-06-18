@@ -1496,6 +1496,11 @@ const Terminal = () => {
       if (e.key === "Tab") {
         e.preventDefault();
         if (suggestion) setInput(suggestion);
+        else if (matches.length === 1) setInput(matches[0]);
+        return;
+      }
+      if (e.key === "Escape") {
+        setAutocompleteOpen(false);
         return;
       }
       if (e.key === "ArrowUp") {
@@ -1517,8 +1522,70 @@ const Terminal = () => {
         }
       }
     },
-    [commandHistory, historyIndex, suggestion]
+    [commandHistory, historyIndex, suggestion, matches]
   );
+
+  // === Random glitch on a visible line every 8–14s ===
+  useEffect(() => {
+    if (!booted) return;
+    let timeout: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const delay = 8000 + Math.random() * 6000;
+      timeout = setTimeout(() => {
+        if (document.body.classList.contains("no-effects")) { schedule(); return; }
+        setLines((prev) => {
+          if (prev.length === 0) return prev;
+          const start = Math.max(0, prev.length - 25);
+          const candidates: number[] = [];
+          for (let i = start; i < prev.length; i++) {
+            if (prev[i].text && prev[i].text.trim().length > 5) candidates.push(i);
+          }
+          if (candidates.length > 0) {
+            const idx = candidates[Math.floor(Math.random() * candidates.length)];
+            setGlitchIdx(idx);
+            setTimeout(() => setGlitchIdx(null), 450);
+          }
+          return prev;
+        });
+        schedule();
+      }, delay);
+    };
+    schedule();
+    return () => clearTimeout(timeout);
+  }, [booted]);
+
+  // === Click particles ===
+  const spawnParticles = useCallback((clientX: number, clientY: number) => {
+    if (document.body.classList.contains("no-effects")) return;
+    const rect = scrollRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top + (scrollRef.current?.scrollTop ?? 0);
+    const newOnes = Array.from({ length: 8 }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 20 + Math.random() * 30;
+      return {
+        id: ++particleIdRef.current,
+        x,
+        y,
+        dx: Math.cos(angle) * dist,
+        dy: Math.sin(angle) * dist,
+      };
+    });
+    setParticles((prev) => [...prev, ...newOnes]);
+    setTimeout(() => {
+      setParticles((prev) => prev.filter((p) => !newOnes.find((n) => n.id === p.id)));
+    }, 750);
+  }, []);
+
+  const handleScrollAreaClick = useCallback(
+    (e: React.MouseEvent) => {
+      spawnParticles(e.clientX, e.clientY);
+      handleFocusTerminal();
+    },
+    [spawnParticles, handleFocusTerminal]
+  );
+
 
   const getLineColor = (type: OutputLine["type"]) => {
     switch (type) {
