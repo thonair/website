@@ -38,7 +38,7 @@ const MatrixRain = ({ boost = false }: MatrixRainProps) => {
 
     const draw = () => {
       const isBoost = boostRef.current;
-      ctx.fillStyle = isBoost ? "rgba(0, 0, 0, 0.03)" : "rgba(0, 0, 0, 0.05)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.03)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px monospace`;
@@ -51,10 +51,10 @@ const MatrixRain = ({ boost = false }: MatrixRainProps) => {
         ctx.fillStyle = `rgba(0, 255, 65, ${(isBoost ? 0.7 : 0.4) + Math.random() * 0.6})`;
         ctx.fillText(char, x, y);
 
-        if (y > canvas.height && Math.random() > (isBoost ? 0.9 : 0.975)) {
+        if (y > canvas.height && Math.random() > (isBoost ? 0.92 : 0.985)) {
           drops[i] = 0;
         }
-        drops[i] += isBoost ? 2 : 1;
+        drops[i] += isBoost ? 1.2 : 0.5;
       }
 
       animId = requestAnimationFrame(draw);
