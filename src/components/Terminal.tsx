@@ -446,6 +446,14 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       p.summary.forEach((s) => lines.push({ text: `  ${s}`, type: "system" }));
     }
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "cat readme") {
+    lines.push({ text: "", type: "output" });
+    README_HOME.forEach((l) => lines.push({ text: l, type: l.startsWith("  ╭") || l.startsWith("  │") || l.startsWith("  ╰") ? "highlight" : "output" }));
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed === "cat projets/readme") {
+    lines.push({ text: "", type: "output" });
+    README_PROJETS.forEach((l) => lines.push({ text: l, type: l.startsWith("  ╭") || l.startsWith("  │") || l.startsWith("  ╰") ? "highlight" : "output" }));
+    lines.push({ text: "", type: "output" });
   } else if (trimmed === "whoami" || trimmed === "whois bera") {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  bera@cyberos — Mustafa Bera Tcholakov", type: "highlight" });
