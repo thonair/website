@@ -1224,9 +1224,75 @@ const Terminal = () => {
     if (cmd.trim()) {
       setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
     }
-    setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
+    const promptCwd = cwd === "~" ? "~" : cwd;
+    setLines((prev) => [...prev, { text: `mbt@cyberos:${promptCwd}$ ${cmd}`, type: "command" }]);
 
-    const result = processCommand(cmd, isMobile);
+    const result = processCommand(cmd, isMobile, cwd);
+    if (result.length === 1 && result[0].text.startsWith("__CD__")) {
+      setCwd(result[0].text.replace("__CD__", ""));
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__CLOCK__") {
+      const fmt = () => {
+        const d = new Date();
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        const ss = String(d.getSeconds()).padStart(2, "0");
+        const unix = Math.floor(d.getTime() / 1000);
+        const hex = d.getTime().toString(16).toUpperCase().slice(-8);
+        return `  ◉ ${hh}:${mm}:${ss}  ·  UNIX ${unix}  ·  0x${hex}`;
+      };
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: "  ╭─ HACKER TIME ──────────────────────────╮", type: "highlight" },
+        { text: fmt(), type: "highlight" },
+        { text: "  ╰────────────────────────────────────────╯", type: "highlight" },
+        { text: "  (mise à jour pendant 30s)", type: "system" },
+        { text: "", type: "output" },
+      ]);
+      let ticks = 0;
+      const id = setInterval(() => {
+        ticks++;
+        setLines((prev) => {
+          const next = [...prev];
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].text.startsWith("  ◉ ")) {
+              next[i] = { ...next[i], text: fmt() };
+              break;
+            }
+          }
+          return next;
+        });
+        if (ticks >= 30) clearInterval(id);
+      }, 1000);
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__SUDO_RM__") {
+      const steps = [
+        "  ⚠ rm: tentative de suppression de /",
+        "  [██░░░░░░░░░░░░░░░░░░░░░░] 8% — /home/...",
+        "  [██████░░░░░░░░░░░░░░░░░░] 25% — /etc/...",
+        "  [████████████░░░░░░░░░░░░] 50% — /usr/...",
+        "  [██████████████████░░░░░░] 75% — /var/...",
+        "  [████████████████████████] 99% ...",
+        "",
+        "  ░░░ PSYCHE ░░░",
+        "  Tu pensais vraiment que ça allait marcher ? 😏",
+        "  rm: opération annulée — l'OS reste en place.",
+      ];
+      let i = 0;
+      const tick = () => {
+        if (i >= steps.length) return;
+        const t = steps[i];
+        setLines((prev) => [...prev, { text: t, type: i < 6 ? "error" : i === 7 ? "highlight" : "system" }]);
+        i++;
+        setTimeout(tick, 250);
+      };
+      setLines((prev) => [...prev, { text: "", type: "output" }]);
+      setTimeout(tick, 150);
+      return;
+    }
     if (result.length === 1 && result[0].text === "__CLEAR__") { setLines([]); return; }
     if (result.length === 1 && result[0].text === "__STATUS_LIVE__") { runStatusCommand(); return; }
     if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) { runTraceroute(result[0].text.replace("__TRACEROUTE__", "")); return; }
