@@ -318,6 +318,8 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "║              COMMANDES DISPONIBLES               ║", type: "highlight" });
       lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
       lines.push({ text: "║  ls              → liste les fichiers            ║", type: "output" });
+      lines.push({ text: "║  cd [dir]        → naviguer (cd projets, cd ..) ║", type: "output" });
+      lines.push({ text: "║  pwd             → dossier courant              ║", type: "output" });
       lines.push({ text: "║  cat [fichier]   → affiche le contenu            ║", type: "output" });
       lines.push({ text: "║  whoami          → qui suis-je ?                 ║", type: "output" });
       lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
