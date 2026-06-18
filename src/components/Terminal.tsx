@@ -227,6 +227,39 @@ function resolvePath(cwd: string, arg: string): string | null {
   return stack.length === 0 ? "~" : "~/" + stack.join("/");
 }
 
+// Visual width of a string in monospace cols. Emoji & most pictographs = 2 cols.
+function visualWidth(s: string): number {
+  let w = 0;
+  for (const ch of Array.from(s)) {
+    const cp = ch.codePointAt(0)!;
+    const wide =
+      (cp >= 0x1100 && cp <= 0x115F) ||
+      (cp >= 0x2600 && cp <= 0x27BF) ||
+      (cp >= 0x2B00 && cp <= 0x2BFF) ||
+      (cp >= 0x2E80 && cp <= 0x303E) ||
+      (cp >= 0x3041 && cp <= 0x33FF) ||
+      (cp >= 0xAC00 && cp <= 0xD7A3) ||
+      (cp >= 0xF900 && cp <= 0xFAFF) ||
+      (cp >= 0xFE30 && cp <= 0xFE4F) ||
+      (cp >= 0xFF00 && cp <= 0xFF60) ||
+      (cp >= 0xFFE0 && cp <= 0xFFE6) ||
+      (cp >= 0x1F000 && cp <= 0x1FFFD);
+    w += wide ? 2 : 1;
+  }
+  return w;
+}
+
+// Pad a string to a target visual width (in monospace cols).
+function padV(s: string, n: number): string {
+  return s + " ".repeat(Math.max(0, n - visualWidth(s)));
+}
+
+// Center a string within a target visual width.
+function centerV(s: string, n: number): string {
+  const left = Math.max(0, Math.floor((n - visualWidth(s)) / 2));
+  return padV(" ".repeat(left) + s, n);
+}
+
 
 function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~"): OutputLine[] {
   let trimmed = cmd.trim().toLowerCase();
@@ -314,43 +347,52 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "  ↑/↓ = historique", type: "system" });
       lines.push({ text: "╰─────────────────────────╯", type: "highlight" });
     } else {
-      lines.push({ text: "╔══════════════════════════════════════════════════╗", type: "highlight" });
-      lines.push({ text: "║              COMMANDES DISPONIBLES               ║", type: "highlight" });
-      lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
-      lines.push({ text: "║  ls              → liste les fichiers            ║", type: "output" });
-      lines.push({ text: "║  cd [dir]        → naviguer (cd projets, cd ..) ║", type: "output" });
-      lines.push({ text: "║  pwd             → dossier courant              ║", type: "output" });
-      lines.push({ text: "║  cat [fichier]   → affiche le contenu            ║", type: "output" });
-      lines.push({ text: "║  whoami          → qui suis-je ?                 ║", type: "output" });
-      lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
-      lines.push({ text: "║  skills          → compétences techniques        ║", type: "output" });
-      lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
-      lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
-      lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
-      lines.push({ text: "║  status          → état live des services        ║", type: "output" });
-      lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
-      lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
-      lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
-      lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
-      lines.push({ text: "║  clock           → horloge live (hacker time)    ║", type: "output" });
-      lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
-      lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
-      lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
-      lines.push({ text: "║  sl              → easter egg 🚂                 ║", type: "output" });
-      lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
-      lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
-      lines.push({ text: "║  sound [on|off]  → bips de touche                ║", type: "output" });
-      lines.push({ text: "║  accessible      → mode sobre (no effects)       ║", type: "output" });
-      lines.push({ text: "║  share [cmd]     → lien direct ?cmd=...          ║", type: "output" });
-      lines.push({ text: "║  history         → dernières commandes           ║", type: "output" });
-      lines.push({ text: "║  echo [texte]    → imprime du texte              ║", type: "output" });
-      lines.push({ text: "║  reset           → raz historique & thème        ║", type: "output" });
-      lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
-      lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
-      lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
-      lines.push({ text: "║  💡 Tab = autocomplétion  ·  ↑/↓ = historique    ║", type: "system" });
-      lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
+      const W = 50; // inner width between ║ ║
+      const helpRows: [string, string][] = [
+        ["ls", "liste les fichiers"],
+        ["cd [dir]", "naviguer (cd projets, cd ..)"],
+        ["pwd", "dossier courant"],
+        ["cat [fichier]", "affiche le contenu"],
+        ["whoami", "qui suis-je ?"],
+        ["banner", "affiche le banner ThonAir"],
+        ["skills", "compétences techniques"],
+        ["certifications", "certifications & formations"],
+        ["infra", "infrastructure homelab"],
+        ["network", "schéma réseau ASCII"],
+        ["status", "état live des services"],
+        ["ping [host]", "ping un sous-domaine"],
+        ["traceroute [h]", "trace la route réseau"],
+        ["fortune", "citation aléatoire"],
+        ["date", "date actuelle"],
+        ["clock", "horloge live (hacker time)"],
+        ["neofetch", "infos système"],
+        ["theme [name]", "matrix | amber | cyan"],
+        ["matrix", "easter egg 🌧"],
+        ["sl", "easter egg 🚂"],
+        ["hack", "scan de ports animé"],
+        ["coffee", "☕"],
+        ["sound [on|off]", "bips de touche"],
+        ["accessible", "mode sobre (no effects)"],
+        ["share [cmd]", "lien direct ?cmd=..."],
+        ["history", "dernières commandes"],
+        ["echo [texte]", "imprime du texte"],
+        ["reset", "raz historique & thème"],
+        ["sudo rm -rf /", "😈"],
+        ["clear", "efface l'écran"],
+      ];
+      const fmt = (cmd: string, desc: string) =>
+        `  ${padV(cmd, 15)} → ${padV(desc, W - 2 - 15 - 3)}`;
+      lines.push({ text: "╔" + "═".repeat(W) + "╗", type: "highlight" });
+      lines.push({ text: "║" + centerV("COMMANDES DISPONIBLES", W) + "║", type: "highlight" });
+      lines.push({ text: "╠" + "═".repeat(W) + "╣", type: "highlight" });
+      helpRows.forEach(([c, d]) => {
+        lines.push({ text: "║" + padV(fmt(c, d), W) + "║", type: "output" });
+      });
+      lines.push({ text: "╠" + "═".repeat(W) + "╣", type: "highlight" });
+      lines.push({ text: "║" + padV("  💡 Tab = autocomplétion  ·  ↑/↓ = historique", W) + "║", type: "system" });
+      lines.push({ text: "╚" + "═".repeat(W) + "╝", type: "highlight" });
     }
+
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "ls" || trimmed.startsWith("ls ")) {
     const dir = FS_TREE[cwd];
@@ -516,18 +558,21 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "  🔒 Cloudflare Zero Trust", type: "system" });
       lines.push({ text: "  📡 Bruxelles, BE", type: "system" });
     } else {
-      lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
-      lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
-      lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
-      lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
-      lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
+      const C1 = 14; // "  SERVICE     "
+      const C2 = 49; // "  DESCRIPTION..."
+      const TOTAL = C1 + 1 + C2; // inner width
+      lines.push({ text: "┌" + "─".repeat(TOTAL) + "┐", type: "highlight" });
+      lines.push({ text: "│" + centerV("INFRASTRUCTURE HOMELAB", TOTAL) + "│", type: "highlight" });
+      lines.push({ text: "├" + "─".repeat(C1) + "┬" + "─".repeat(C2) + "┤", type: "highlight" });
+      lines.push({ text: "│" + padV("  SERVICE", C1) + "│" + padV("  DESCRIPTION", C2) + "│", type: "highlight" });
+      lines.push({ text: "├" + "─".repeat(C1) + "┼" + "─".repeat(C2) + "┤", type: "highlight" });
       services.forEach(([name, desc]) => {
-        lines.push({ text: `│  ${name.padEnd(12)}│  ${desc.padEnd(45)}│`, type: "output" });
+        lines.push({ text: "│" + padV("  " + name, C1) + "│" + padV("  " + desc, C2) + "│", type: "output" });
       });
-      lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
-      lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
-      lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
-      lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+      lines.push({ text: "├" + "─".repeat(C1) + "┴" + "─".repeat(C2) + "┤", type: "highlight" });
+      lines.push({ text: "│" + padV("  🔒 Tous les services sont protégés par Cloudflare Zero Trust", TOTAL) + "│", type: "system" });
+      lines.push({ text: "│" + padV("  📡 Hébergé sur serveur personnel — Bruxelles, BE", TOTAL) + "│", type: "system" });
+      lines.push({ text: "└" + "─".repeat(TOTAL) + "┘", type: "highlight" });
     }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
@@ -1069,35 +1114,45 @@ const Terminal = () => {
 
     clearInterval(spinTick);
 
-    const pad = (s: string, n: number) => s + " ".repeat(Math.max(0, n - s.length));
+    const C1 = 12; // SERVICE col inner
+    const C2 = 44; // ÉTAT col inner
+    const C3 = 13; // UPTIME col inner
+    const TOTAL = C1 + 1 + C2 + 1 + C3;
     const fmtRow = (r: Row) => {
       const dot = r.up === true ? "●" : r.up === false ? "✕" : "○";
       const label = r.up === true ? "EN LIGNE" : r.up === false ? "DOWN    " : "INCONNU ";
-      const lock = r.protected ? "🔒" : "  ";
-      const upt = r.uptime !== undefined ? `${r.uptime.toFixed(2)}%` : "  —   ";
-      return `│  ${pad(r.name, 8)}  │  ${dot} ${label} — ${pad(r.host, 22)} ${lock}  │  ${pad(upt, 7)} │`;
+      const lock = r.protected ? "🔒" : "";
+      const upt = r.uptime !== undefined ? `${r.uptime.toFixed(2)}%` : "—";
+      const col1 = padV("  " + r.name, C1);
+      const col2 = padV(`  ${dot} ${label} — ${padV(r.host, 20)} ${lock}`, C2);
+      const col3 = padV("   " + upt, C3);
+      return `│${col1}│${col2}│${col3}│`;
     };
 
     const output: OutputLine[] = [
       { text: "", type: "output" },
-      { text: "┌────────────────────────────────────────────────────────────────────┐", type: "highlight" },
-      { text: "│                      ÉTAT LIVE DES SERVICES                        │", type: "highlight" },
-      { text: "├────────────┬─────────────────────────────────────────┬─────────────┤", type: "highlight" },
-      { text: "│  SERVICE   │  ÉTAT                                    │   UPTIME    │", type: "highlight" },
-      { text: "├────────────┼─────────────────────────────────────────┼─────────────┤", type: "highlight" },
+      { text: "┌" + "─".repeat(TOTAL) + "┐", type: "highlight" },
+      { text: "│" + centerV("ÉTAT LIVE DES SERVICES", TOTAL) + "│", type: "highlight" },
+      { text: "├" + "─".repeat(C1) + "┬" + "─".repeat(C2) + "┬" + "─".repeat(C3) + "┤", type: "highlight" },
+      { text: "│" + padV("  SERVICE", C1) + "│" + padV("  ÉTAT", C2) + "│" + padV("  UPTIME", C3) + "│", type: "highlight" },
+      { text: "├" + "─".repeat(C1) + "┼" + "─".repeat(C2) + "┼" + "─".repeat(C3) + "┤", type: "highlight" },
       ...rows.map((r) => ({ text: fmtRow(r), type: "output" as const })),
-      { text: "├────────────┴─────────────────────────────────────────┴─────────────┤", type: "highlight" },
+      { text: "├" + "─".repeat(C1) + "┴" + "─".repeat(C2) + "┴" + "─".repeat(C3) + "┤", type: "highlight" },
       {
         text:
-          liveSource === "kuma"
-            ? "│  📡 Source: Uptime Kuma — stats.thonair.com (live)                 │"
-            : "│  ⚠ Uptime Kuma indisponible — sondage navigateur best-effort      │",
+          "│" + padV(
+            liveSource === "kuma"
+              ? "  📡 Source: Uptime Kuma — stats.thonair.com (live)"
+              : "  ⚠ Uptime Kuma indisponible — sondage navigateur best-effort",
+            TOTAL,
+          ) + "│",
         type: "system",
       },
-      { text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                      │", type: "system" },
-      { text: "└────────────────────────────────────────────────────────────────────┘", type: "highlight" },
+      { text: "│" + padV("  🔒 = Accès protégé par Cloudflare Zero Trust", TOTAL) + "│", type: "system" },
+      { text: "└" + "─".repeat(TOTAL) + "┘", type: "highlight" },
       { text: "", type: "output" },
     ];
+
 
     setLines((prev) => {
       const next = [...prev];
