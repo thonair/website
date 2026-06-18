@@ -229,9 +229,27 @@ function resolvePath(cwd: string, arg: string): string | null {
 
 
 function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~"): OutputLine[] {
-  const trimmed = cmd.trim().toLowerCase();
+  let trimmed = cmd.trim().toLowerCase();
   const raw = cmd.trim();
   const lines: OutputLine[] = [];
+
+  // Normalize `cat <arg>` relative to cwd, so `cat 01.txt` inside ~/projets
+  // resolves to `cat projets/01`, and `cat readme.txt` resolves correctly.
+  if (trimmed.startsWith("cat ")) {
+    const arg = trimmed.slice(4).trim().replace(/\.txt$/, "");
+    let resolved: string | null = null;
+    if (arg === "readme") {
+      resolved = cwd === "~/projets" ? "projets/readme" : "readme";
+    } else if (/^\d{2}$/.test(arg) && cwd === "~/projets") {
+      resolved = `projets/${arg}`;
+    } else if (["about", "services", "contact", "projets"].includes(arg)) {
+      resolved = arg;
+    } else if (/^projets\/(\d{2}|readme)$/.test(arg)) {
+      resolved = arg;
+    }
+    if (resolved) trimmed = `cat ${resolved}`;
+  }
+
 
   // Compact header helper: thin underline on mobile, ASCII box on desktop.
   const sectionHeader = (title: string): OutputLine[] => {
