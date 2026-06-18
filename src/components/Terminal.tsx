@@ -228,7 +228,7 @@ function resolvePath(cwd: string, arg: string): string | null {
 }
 
 
-function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
+function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~"): OutputLine[] {
   const trimmed = cmd.trim().toLowerCase();
   const raw = cmd.trim();
   const lines: OutputLine[] = [];
