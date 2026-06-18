@@ -700,18 +700,27 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       }
     }
     lines.push({ text: "", type: "output" });
-  } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf") {
+  } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf" || trimmed === "sudo rm -rf /*") {
+    return [{ text: "__SUDO_RM__", type: "system" }];
+  } else if (trimmed === "sudo") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "  ⚠️  Nice try... 😏", type: "error" });
-    lines.push({ text: "  Permission denied: tu croyais que j'allais", type: "error" });
-    lines.push({ text: "  me laisser faire ?", type: "error" });
+    lines.push({ text: "  usage: sudo <commande>", type: "system" });
+    lines.push({ text: "  (et non, tu n'as pas les droits root ici 😏)", type: "error" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo reboot") {
+    lines.push({ text: "", type: "output" });
     lines.push({ text: "  Rebooting system...", type: "system" });
-    lines.push({ text: "  Lol non, pas aujourd'hui.", type: "error" });
+    lines.push({ text: "  ...lol non, pas aujourd'hui.", type: "error" });
+    lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo make me a sandwich") {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🥪 Okay.", type: "highlight" });
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed.startsWith("sudo ")) {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: `  [sudo] mot de passe pour visiteur: `, type: "system" });
+    lines.push({ text: `  visiteur n'est pas dans le fichier sudoers.`, type: "error" });
+    lines.push({ text: `  Cet incident sera signalé. (pas vraiment)`, type: "error" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sl") {
     lines.push({ text: "__SL__", type: "system" });
