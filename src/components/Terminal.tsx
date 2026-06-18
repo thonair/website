@@ -1678,6 +1678,7 @@ const Terminal = () => {
                     const prev = input;
                     const next = e.target.value;
                     setInput(next);
+                    setCaretPos(e.target.selectionStart ?? next.length);
                     if (next.length < prev.length) {
                       beep(220, 0.03, 0.04); // backspace: lower thunk
                     } else {
@@ -1687,6 +1688,23 @@ const Terminal = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") beep(440, 0.05, 0.05);
                     handleKeyDown(e);
+                    // update caret on next tick after the key takes effect
+                    requestAnimationFrame(() => {
+                      const el = inputRef.current;
+                      if (el) setCaretPos(el.selectionStart ?? el.value.length);
+                    });
+                  }}
+                  onKeyUp={(e) => {
+                    const el = e.currentTarget;
+                    setCaretPos(el.selectionStart ?? el.value.length);
+                  }}
+                  onClick={(e) => {
+                    const el = e.currentTarget;
+                    setCaretPos(el.selectionStart ?? el.value.length);
+                  }}
+                  onSelect={(e) => {
+                    const el = e.currentTarget;
+                    setCaretPos(el.selectionStart ?? el.value.length);
                   }}
                   onFocus={() => {
                     if (isMobile) {
@@ -1705,14 +1723,15 @@ const Terminal = () => {
                 />
 
                 <span
-                  className="absolute top-0 animate-cursor-blink bg-foreground"
+                  className="absolute top-0 animate-cursor-blink bg-foreground pointer-events-none"
                   style={{
-                    left: `${input.length}ch`,
+                    left: `${Math.min(caretPos, input.length)}ch`,
                     width: "0.6ch",
                     height: "1.2em",
                     opacity: 0.9,
                   }}
                 />
+
 
                 {/* Visual autocomplete dropdown */}
                 {autocompleteOpen && matches.length > 0 && (
