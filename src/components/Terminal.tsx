@@ -1452,11 +1452,44 @@ const Terminal = () => {
     return match || "";
   }, []);
 
+  // Compute multi-matches list for visual autocomplete dropdown
+  const computeMatches = useCallback((value: string): string[] => {
+    if (!value) return [];
+    const lower = value.toLowerCase();
+    if (lower.startsWith("cat ")) {
+      const partial = lower.slice(4);
+      return FILES.filter((f) => f.startsWith(partial)).slice(0, 6).map((f) => "cat " + f);
+    }
+    if (lower.startsWith("cd ")) {
+      const partial = lower.slice(3);
+      const opts = ["~", "..", "projets"];
+      return opts.filter((o) => o.startsWith(partial)).slice(0, 6).map((o) => "cd " + o);
+    }
+    for (const hc of ["ping ", "traceroute ", "tracert "]) {
+      if (lower.startsWith(hc)) {
+        const partial = lower.slice(hc.length);
+        return SUBDOMAINS.filter((s) => s.name.startsWith(partial)).slice(0, 6).map((s) => hc + s.name);
+      }
+    }
+    if (lower.startsWith("theme ")) {
+      const partial = lower.slice(6);
+      return ["matrix", "amber", "cyan"].filter((t) => t.startsWith(partial)).map((t) => "theme " + t);
+    }
+    if (!lower.includes(" ")) {
+      return COMMANDS.filter((c) => c.startsWith(lower)).slice(0, 6);
+    }
+    return [];
+  }, []);
+
   useEffect(() => {
-    if (!input) { setSuggestion(""); return; }
+    if (!input) { setSuggestion(""); setMatches([]); setAutocompleteOpen(false); return; }
     const c = computeCompletion(input);
     setSuggestion(c && c.toLowerCase() !== input.toLowerCase() ? c : "");
-  }, [input, computeCompletion]);
+    const ms = computeMatches(input);
+    setMatches(ms);
+    // open dropdown when there is at least one match that's not already the input
+    setAutocompleteOpen(ms.length > 0 && !(ms.length === 1 && ms[0].toLowerCase() === input.toLowerCase()));
+  }, [input, computeCompletion, computeMatches]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
