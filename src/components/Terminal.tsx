@@ -347,43 +347,52 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "  ↑/↓ = historique", type: "system" });
       lines.push({ text: "╰─────────────────────────╯", type: "highlight" });
     } else {
-      lines.push({ text: "╔══════════════════════════════════════════════════╗", type: "highlight" });
-      lines.push({ text: "║              COMMANDES DISPONIBLES               ║", type: "highlight" });
-      lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
-      lines.push({ text: "║  ls              → liste les fichiers            ║", type: "output" });
-      lines.push({ text: "║  cd [dir]        → naviguer (cd projets, cd ..) ║", type: "output" });
-      lines.push({ text: "║  pwd             → dossier courant              ║", type: "output" });
-      lines.push({ text: "║  cat [fichier]   → affiche le contenu            ║", type: "output" });
-      lines.push({ text: "║  whoami          → qui suis-je ?                 ║", type: "output" });
-      lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
-      lines.push({ text: "║  skills          → compétences techniques        ║", type: "output" });
-      lines.push({ text: "║  certifications  → certifications & formations   ║", type: "output" });
-      lines.push({ text: "║  infra           → infrastructure homelab        ║", type: "output" });
-      lines.push({ text: "║  network         → schéma réseau ASCII           ║", type: "output" });
-      lines.push({ text: "║  status          → état live des services        ║", type: "output" });
-      lines.push({ text: "║  ping [host]     → ping un sous-domaine          ║", type: "output" });
-      lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
-      lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
-      lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
-      lines.push({ text: "║  clock           → horloge live (hacker time)    ║", type: "output" });
-      lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
-      lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
-      lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
-      lines.push({ text: "║  sl              → easter egg 🚂                 ║", type: "output" });
-      lines.push({ text: "║  hack            → scan de ports animé           ║", type: "output" });
-      lines.push({ text: "║  coffee          → ☕                            ║", type: "output" });
-      lines.push({ text: "║  sound [on|off]  → bips de touche                ║", type: "output" });
-      lines.push({ text: "║  accessible      → mode sobre (no effects)       ║", type: "output" });
-      lines.push({ text: "║  share [cmd]     → lien direct ?cmd=...          ║", type: "output" });
-      lines.push({ text: "║  history         → dernières commandes           ║", type: "output" });
-      lines.push({ text: "║  echo [texte]    → imprime du texte              ║", type: "output" });
-      lines.push({ text: "║  reset           → raz historique & thème        ║", type: "output" });
-      lines.push({ text: "║  sudo rm -rf /   → 😈                            ║", type: "output" });
-      lines.push({ text: "║  clear           → efface l'écran                ║", type: "output" });
-      lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
-      lines.push({ text: "║  💡 Tab = autocomplétion  ·  ↑/↓ = historique    ║", type: "system" });
-      lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
+      const W = 50; // inner width between ║ ║
+      const helpRows: [string, string][] = [
+        ["ls", "liste les fichiers"],
+        ["cd [dir]", "naviguer (cd projets, cd ..)"],
+        ["pwd", "dossier courant"],
+        ["cat [fichier]", "affiche le contenu"],
+        ["whoami", "qui suis-je ?"],
+        ["banner", "affiche le banner ThonAir"],
+        ["skills", "compétences techniques"],
+        ["certifications", "certifications & formations"],
+        ["infra", "infrastructure homelab"],
+        ["network", "schéma réseau ASCII"],
+        ["status", "état live des services"],
+        ["ping [host]", "ping un sous-domaine"],
+        ["traceroute [h]", "trace la route réseau"],
+        ["fortune", "citation aléatoire"],
+        ["date", "date actuelle"],
+        ["clock", "horloge live (hacker time)"],
+        ["neofetch", "infos système"],
+        ["theme [name]", "matrix | amber | cyan"],
+        ["matrix", "easter egg 🌧"],
+        ["sl", "easter egg 🚂"],
+        ["hack", "scan de ports animé"],
+        ["coffee", "☕"],
+        ["sound [on|off]", "bips de touche"],
+        ["accessible", "mode sobre (no effects)"],
+        ["share [cmd]", "lien direct ?cmd=..."],
+        ["history", "dernières commandes"],
+        ["echo [texte]", "imprime du texte"],
+        ["reset", "raz historique & thème"],
+        ["sudo rm -rf /", "😈"],
+        ["clear", "efface l'écran"],
+      ];
+      const fmt = (cmd: string, desc: string) =>
+        `  ${padV(cmd, 15)} → ${padV(desc, W - 2 - 15 - 3)}`;
+      lines.push({ text: "╔" + "═".repeat(W) + "╗", type: "highlight" });
+      lines.push({ text: "║" + centerV("COMMANDES DISPONIBLES", W) + "║", type: "highlight" });
+      lines.push({ text: "╠" + "═".repeat(W) + "╣", type: "highlight" });
+      helpRows.forEach(([c, d]) => {
+        lines.push({ text: "║" + padV(fmt(c, d), W) + "║", type: "output" });
+      });
+      lines.push({ text: "╠" + "═".repeat(W) + "╣", type: "highlight" });
+      lines.push({ text: "║" + padV("  💡 Tab = autocomplétion  ·  ↑/↓ = historique", W) + "║", type: "system" });
+      lines.push({ text: "╚" + "═".repeat(W) + "╝", type: "highlight" });
     }
+
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "ls" || trimmed.startsWith("ls ")) {
     const dir = FS_TREE[cwd];
