@@ -1389,7 +1389,12 @@ const Terminal = () => {
       return;
     }
     setLines((prev) => [...prev, ...result]);
-  }, [isMobile, runStatusCommand, runTraceroute, runHack, runSl, applyTheme, commandHistory]);
+    if (result.some((l) => l.type === "error")) {
+      // low buzz for errors
+      beep(180, 0.12, 0.05);
+      setTimeout(() => beep(140, 0.08, 0.05), 80);
+    }
+  }, [isMobile, cwd, runStatusCommand, runTraceroute, runHack, runSl, applyTheme, commandHistory, beep]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
