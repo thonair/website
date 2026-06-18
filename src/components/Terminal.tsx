@@ -1623,16 +1623,30 @@ const Terminal = () => {
 
         <div
           ref={scrollRef}
-          onClick={handleFocusTerminal}
+          onClick={handleScrollAreaClick}
           aria-live="polite"
           aria-label="Terminal output"
           role="log"
-          className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background crt-flicker cursor-text font-mono text-sm leading-relaxed"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background crt-flicker cursor-text font-mono text-sm leading-relaxed relative"
         >
+          {/* Click particles overlay */}
+          {particles.map((p) => (
+            <span
+              key={p.id}
+              className="click-particle"
+              style={{
+                left: p.x,
+                top: p.y,
+                ['--dx' as any]: `${p.dx}px`,
+                ['--dy' as any]: `${p.dy}px`,
+              }}
+            />
+          ))}
+
           {lines.map((line, i) => (
             <div
               key={i}
-              className={`${getLineColor(line.type)} whitespace-pre-wrap animate-fade-in-line`}
+              className={`${getLineColor(line.type)} whitespace-pre-wrap animate-fade-in-line ${glitchIdx === i ? "glitch-line" : ""}`}
               style={{ animationDelay: booting ? `${i * 20}ms` : "0ms" }}
             >
               {renderLineContent(line.text)}
@@ -1640,9 +1654,9 @@ const Terminal = () => {
           ))}
 
           {booted && (
-            <form onSubmit={handleSubmit} className="flex items-center mt-1">
+            <form onSubmit={handleSubmit} className="flex items-center mt-1 relative">
               <span className="text-foreground text-glow whitespace-pre">
-                mbt@cyberos:~${" "}
+                {`mbt@cyberos:${cwd}$ `}
               </span>
               <div className="relative flex-1">
                 {/* ghost suggestion */}
@@ -1659,8 +1673,20 @@ const Terminal = () => {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e) => { setInput(e.target.value); beep(720, 0.02, 0.04); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") beep(440, 0.05, 0.05); handleKeyDown(e); }}
+                  onChange={(e) => {
+                    const prev = input;
+                    const next = e.target.value;
+                    setInput(next);
+                    if (next.length < prev.length) {
+                      beep(220, 0.03, 0.04); // backspace: lower thunk
+                    } else {
+                      beep(720, 0.02, 0.04); // typing: high tick
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") beep(440, 0.05, 0.05);
+                    handleKeyDown(e);
+                  }}
                   onFocus={() => {
                     if (isMobile) {
                       setTimeout(() => {
@@ -1686,10 +1712,38 @@ const Terminal = () => {
                     opacity: 0.9,
                   }}
                 />
+
+                {/* Visual autocomplete dropdown */}
+                {autocompleteOpen && matches.length > 0 && (
+                  <ul
+                    className="autocomplete-menu absolute left-0 bottom-full mb-1 rounded-md font-mono text-xs sm:text-sm overflow-hidden z-40 min-w-[180px]"
+                    role="listbox"
+                    aria-label="Suggestions"
+                  >
+                    {matches.map((m, i) => (
+                      <li
+                        key={m}
+                        role="option"
+                        aria-selected={false}
+                        className="px-3 py-1 cursor-pointer text-foreground/90 hover:bg-foreground/10 hover:text-glow flex items-center gap-2"
+                        onMouseDown={(ev) => {
+                          ev.preventDefault();
+                          setInput(m);
+                          setAutocompleteOpen(false);
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        <span className="text-muted-foreground">{i === 0 ? "›" : " "}</span>
+                        <span>{m}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </form>
           )}
         </div>
+
 
         <div className="flex items-center justify-between px-4 py-1.5 bg-terminal-header border-t border-border text-xs text-muted-foreground font-mono">
           <span>CyberOS v3.1</span>
