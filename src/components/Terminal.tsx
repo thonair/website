@@ -277,6 +277,8 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "╭─ COMMANDES ─────────────╮", type: "highlight" });
       const rows: [string, string][] = [
         ["ls", "fichiers"],
+        ["cd [dir]", "naviguer"],
+        ["pwd", "chemin"],
         ["cat [f]", "contenu"],
         ["whoami", "identité"],
         ["banner", "logo"],
