@@ -332,6 +332,7 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
       lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
       lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
+      lines.push({ text: "║  clock           → horloge live (hacker time)    ║", type: "output" });
       lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
       lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
       lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
