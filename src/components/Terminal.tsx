@@ -558,18 +558,21 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "  🔒 Cloudflare Zero Trust", type: "system" });
       lines.push({ text: "  📡 Bruxelles, BE", type: "system" });
     } else {
-      lines.push({ text: "┌──────────────────────────────────────────────────────────────┐", type: "highlight" });
-      lines.push({ text: "│                    INFRASTRUCTURE HOMELAB                     │", type: "highlight" });
-      lines.push({ text: "├──────────────┬───────────────────────────────────────────────┤", type: "highlight" });
-      lines.push({ text: "│  SERVICE     │  DESCRIPTION                                  │", type: "highlight" });
-      lines.push({ text: "├──────────────┼───────────────────────────────────────────────┤", type: "highlight" });
+      const C1 = 14; // "  SERVICE     "
+      const C2 = 49; // "  DESCRIPTION..."
+      const TOTAL = C1 + 1 + C2; // inner width
+      lines.push({ text: "┌" + "─".repeat(TOTAL) + "┐", type: "highlight" });
+      lines.push({ text: "│" + centerV("INFRASTRUCTURE HOMELAB", TOTAL) + "│", type: "highlight" });
+      lines.push({ text: "├" + "─".repeat(C1) + "┬" + "─".repeat(C2) + "┤", type: "highlight" });
+      lines.push({ text: "│" + padV("  SERVICE", C1) + "│" + padV("  DESCRIPTION", C2) + "│", type: "highlight" });
+      lines.push({ text: "├" + "─".repeat(C1) + "┼" + "─".repeat(C2) + "┤", type: "highlight" });
       services.forEach(([name, desc]) => {
-        lines.push({ text: `│  ${name.padEnd(12)}│  ${desc.padEnd(45)}│`, type: "output" });
+        lines.push({ text: "│" + padV("  " + name, C1) + "│" + padV("  " + desc, C2) + "│", type: "output" });
       });
-      lines.push({ text: "├──────────────┴───────────────────────────────────────────────┤", type: "highlight" });
-      lines.push({ text: "│  🔒 Tous les services sont protégés par Cloudflare Zero Trust │", type: "system" });
-      lines.push({ text: "│  📡 Hébergé sur serveur personnel — Bruxelles, BE             │", type: "system" });
-      lines.push({ text: "└──────────────────────────────────────────────────────────────┘", type: "highlight" });
+      lines.push({ text: "├" + "─".repeat(C1) + "┴" + "─".repeat(C2) + "┤", type: "highlight" });
+      lines.push({ text: "│" + padV("  🔒 Tous les services sont protégés par Cloudflare Zero Trust", TOTAL) + "│", type: "system" });
+      lines.push({ text: "│" + padV("  📡 Hébergé sur serveur personnel — Bruxelles, BE", TOTAL) + "│", type: "system" });
+      lines.push({ text: "└" + "─".repeat(TOTAL) + "┘", type: "highlight" });
     }
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "status") {
