@@ -291,6 +291,7 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
         ["traceroute", "trace route"],
         ["fortune", "citation"],
         ["date", "horloge"],
+        ["clock", "live clock"],
         ["neofetch", "sys info"],
         ["theme [n]", "matrix/amber/cyan"],
         ["sound [on/off]", "bips"],
