@@ -163,18 +163,93 @@ const PROJECTS: Record<
 };
 
 const COMMANDS = [
-  "help", "ls", "cat", "whoami", "banner", "skills", "certifications", "certs",
+  "help", "ls", "cat", "cd", "pwd", "whoami", "banner", "skills", "certifications", "certs",
   "infra", "network", "net", "status", "ping", "traceroute", "tracert",
-  "fortune", "date", "neofetch", "theme", "matrix", "hack", "coffee",
+  "fortune", "date", "clock", "neofetch", "theme", "matrix", "hack", "coffee",
   "clear", "sudo", "sl", "sound", "accessible", "echo", "history", "reset", "share",
 ];
 
-const FILES = ["about", "services", "contact", "projets", "projets/01", "projets/02", "projets/03"];
+const FILES = ["about", "services", "contact", "readme", "projets", "projets/01", "projets/02", "projets/03", "projets/readme"];
 
-function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
-  const trimmed = cmd.trim().toLowerCase();
+// Virtual filesystem (cwd-aware)
+type FsDir = { dirs: string[]; files: string[] };
+const FS_TREE: Record<string, FsDir> = {
+  "~": { dirs: ["projets"], files: ["about.txt", "services.txt", "contact.txt", "readme.txt"] },
+  "~/projets": { dirs: [], files: ["01.txt", "02.txt", "03.txt", "readme.txt"] },
+};
+
+const README_HOME = [
+  "  ╭─ README.TXT ──────────────────────────╮",
+  "  │  Bienvenue dans le terminal ThonAir.  │",
+  "  ╰───────────────────────────────────────╯",
+  "",
+  "  Tu navigues dans un système de fichiers simulé.",
+  "  Commandes utiles :",
+  "    ls            → liste le dossier courant",
+  "    cd projets    → entre dans un dossier",
+  "    cd ..         → remonte",
+  "    cat <fichier> → affiche un fichier",
+  "    pwd           → chemin actuel",
+  "",
+  "  Tape 'help' pour la liste complète.",
+];
+
+const README_PROJETS = [
+  "  ╭─ projets/README.TXT ──────────────────╮",
+  "  │  Index des projets & labs.            │",
+  "  ╰───────────────────────────────────────╯",
+  "",
+  "  01.txt → Home Lab (Proxmox + Kali)",
+  "  02.txt → CTF Challenges",
+  "  03.txt → Sécurisation Cloud",
+  "",
+  "  Tape 'cat 01.txt' depuis ce dossier",
+  "  ou 'cat projets/01' depuis la racine.",
+];
+
+// Resolve a path argument given a cwd. Returns canonical path or null.
+function resolvePath(cwd: string, arg: string): string | null {
+  if (!arg || arg === "~" || arg === "/") return "~";
+  let base: string;
+  if (arg.startsWith("~/") || arg.startsWith("/")) {
+    base = "~";
+    arg = arg.replace(/^(~\/|\/)/, "");
+  } else {
+    base = cwd;
+  }
+  const parts = arg.split("/").filter(Boolean);
+  const stack = base === "~" ? [] : base.replace(/^~\/?/, "").split("/").filter(Boolean);
+  for (const p of parts) {
+    if (p === "." || p === "") continue;
+    if (p === "..") { stack.pop(); continue; }
+    stack.push(p);
+  }
+  return stack.length === 0 ? "~" : "~/" + stack.join("/");
+}
+
+
+function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~"): OutputLine[] {
+  let trimmed = cmd.trim().toLowerCase();
   const raw = cmd.trim();
   const lines: OutputLine[] = [];
+
+  // Normalize `cat <arg>` relative to cwd, so `cat 01.txt` inside ~/projets
+  // resolves to `cat projets/01`, and `cat readme.txt` resolves correctly.
+  if (trimmed.startsWith("cat ")) {
+    const arg = trimmed.slice(4).trim().replace(/\.txt$/, "");
+    let resolved: string | null = null;
+    if (arg === "readme") {
+      resolved = cwd === "~/projets" ? "projets/readme" : "readme";
+    } else if (/^\d{2}$/.test(arg) && cwd === "~/projets") {
+      resolved = `projets/${arg}`;
+    } else if (["about", "services", "contact", "projets"].includes(arg)) {
+      resolved = arg;
+    } else if (/^projets\/(\d{2}|readme)$/.test(arg)) {
+      resolved = arg;
+    }
+    if (resolved) trimmed = `cat ${resolved}`;
+  }
+
 
   // Compact header helper: thin underline on mobile, ASCII box on desktop.
   const sectionHeader = (title: string): OutputLine[] => {
@@ -202,6 +277,8 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "╭─ COMMANDES ─────────────╮", type: "highlight" });
       const rows: [string, string][] = [
         ["ls", "fichiers"],
+        ["cd [dir]", "naviguer"],
+        ["pwd", "chemin"],
         ["cat [f]", "contenu"],
         ["whoami", "identité"],
         ["banner", "logo"],
@@ -214,6 +291,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
         ["traceroute", "trace route"],
         ["fortune", "citation"],
         ["date", "horloge"],
+        ["clock", "live clock"],
         ["neofetch", "sys info"],
         ["theme [n]", "matrix/amber/cyan"],
         ["sound [on/off]", "bips"],
@@ -240,6 +318,8 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "║              COMMANDES DISPONIBLES               ║", type: "highlight" });
       lines.push({ text: "╠══════════════════════════════════════════════════╣", type: "highlight" });
       lines.push({ text: "║  ls              → liste les fichiers            ║", type: "output" });
+      lines.push({ text: "║  cd [dir]        → naviguer (cd projets, cd ..) ║", type: "output" });
+      lines.push({ text: "║  pwd             → dossier courant              ║", type: "output" });
       lines.push({ text: "║  cat [fichier]   → affiche le contenu            ║", type: "output" });
       lines.push({ text: "║  whoami          → qui suis-je ?                 ║", type: "output" });
       lines.push({ text: "║  banner          → affiche le banner ThonAir     ║", type: "output" });
@@ -252,6 +332,7 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "║  traceroute [h]  → trace la route réseau         ║", type: "output" });
       lines.push({ text: "║  fortune         → citation aléatoire            ║", type: "output" });
       lines.push({ text: "║  date            → date actuelle                 ║", type: "output" });
+      lines.push({ text: "║  clock           → horloge live (hacker time)    ║", type: "output" });
       lines.push({ text: "║  neofetch        → infos système                 ║", type: "output" });
       lines.push({ text: "║  theme [name]    → matrix | amber | cyan         ║", type: "output" });
       lines.push({ text: "║  matrix          → easter egg 🌧                 ║", type: "output" });
@@ -271,11 +352,32 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
     }
     lines.push({ text: "", type: "output" });
-  } else if (trimmed === "ls") {
+  } else if (trimmed === "ls" || trimmed.startsWith("ls ")) {
+    const dir = FS_TREE[cwd];
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "📁 about.txt    📁 services.txt    📁 contact.txt    📁 projets/", type: "highlight" });
-    lines.push({ text: "   projets/01.txt   projets/02.txt   projets/03.txt", type: "system" });
+    if (!dir) {
+      lines.push({ text: `  ls: ${cwd}: dossier inconnu`, type: "error" });
+    } else {
+      const parts: string[] = [];
+      dir.dirs.forEach((d) => parts.push(`📁 ${d}/`));
+      dir.files.forEach((f) => parts.push(`📄 ${f}`));
+      lines.push({ text: "  " + parts.join("    "), type: "highlight" });
+    }
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "pwd") {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: `  ${cwd}`, type: "output" });
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed === "cd" || trimmed.startsWith("cd ")) {
+    const arg = trimmed === "cd" ? "~" : trimmed.slice(3).trim();
+    const target = resolvePath(cwd, arg);
+    if (target && FS_TREE[target]) {
+      return [{ text: `__CD__${target}`, type: "system" }];
+    }
+    lines.push({ text: `  cd: ${arg}: dossier introuvable`, type: "error" });
+  } else if (trimmed === "clock") {
+    return [{ text: "__CLOCK__", type: "system" }];
+
   } else if (trimmed === "cat about" || trimmed === "cat about.txt") {
     lines.push({ text: "", type: "output" });
     sectionHeader("À PROPOS DE BERA").forEach((l) => lines.push(l));
@@ -349,6 +451,14 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       lines.push({ text: "", type: "output" });
       p.summary.forEach((s) => lines.push({ text: `  ${s}`, type: "system" }));
     }
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed === "cat readme") {
+    lines.push({ text: "", type: "output" });
+    README_HOME.forEach((l) => lines.push({ text: l, type: l.startsWith("  ╭") || l.startsWith("  │") || l.startsWith("  ╰") ? "highlight" : "output" }));
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed === "cat projets/readme") {
+    lines.push({ text: "", type: "output" });
+    README_PROJETS.forEach((l) => lines.push({ text: l, type: l.startsWith("  ╭") || l.startsWith("  │") || l.startsWith("  ╰") ? "highlight" : "output" }));
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "whoami" || trimmed === "whois bera") {
     lines.push({ text: "", type: "output" });
@@ -596,18 +706,27 @@ function processCommand(cmd: string, mobile: boolean = false): OutputLine[] {
       }
     }
     lines.push({ text: "", type: "output" });
-  } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf") {
+  } else if (trimmed === "sudo rm -rf /" || trimmed === "sudo rm -rf" || trimmed === "sudo rm -rf /*") {
+    return [{ text: "__SUDO_RM__", type: "system" }];
+  } else if (trimmed === "sudo") {
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "  ⚠️  Nice try... 😏", type: "error" });
-    lines.push({ text: "  Permission denied: tu croyais que j'allais", type: "error" });
-    lines.push({ text: "  me laisser faire ?", type: "error" });
+    lines.push({ text: "  usage: sudo <commande>", type: "system" });
+    lines.push({ text: "  (et non, tu n'as pas les droits root ici 😏)", type: "error" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo reboot") {
+    lines.push({ text: "", type: "output" });
     lines.push({ text: "  Rebooting system...", type: "system" });
-    lines.push({ text: "  Lol non, pas aujourd'hui.", type: "error" });
+    lines.push({ text: "  ...lol non, pas aujourd'hui.", type: "error" });
+    lines.push({ text: "", type: "output" });
   } else if (trimmed === "sudo make me a sandwich") {
     lines.push({ text: "", type: "output" });
     lines.push({ text: "  🥪 Okay.", type: "highlight" });
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed.startsWith("sudo ")) {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: `  [sudo] mot de passe pour visiteur: `, type: "system" });
+    lines.push({ text: `  visiteur n'est pas dans le fichier sudoers.`, type: "error" });
+    lines.push({ text: `  Cet incident sera signalé. (pas vraiment)`, type: "error" });
     lines.push({ text: "", type: "output" });
   } else if (trimmed === "sl") {
     lines.push({ text: "__SL__", type: "system" });
@@ -756,9 +875,15 @@ const Terminal = () => {
   const [soundOn, setSoundOn] = useState<boolean>(() => {
     try { return localStorage.getItem(SOUND_KEY) === "1"; } catch { return false; }
   });
+  const [cwd, setCwd] = useState<string>("~");
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const [matches, setMatches] = useState<string[]>([]);
+  const [glitchIdx, setGlitchIdx] = useState<number | null>(null);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; dx: number; dy: number }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const particleIdRef = useRef(0);
 
   const bootSequence = useMemo(() => buildBootSequence(isMobile), [isMobile]);
 
@@ -1099,9 +1224,75 @@ const Terminal = () => {
     if (cmd.trim()) {
       setCommandHistory((prev) => [cmd, ...prev].slice(0, 50));
     }
-    setLines((prev) => [...prev, { text: `mbt@cyberos:~$ ${cmd}`, type: "command" }]);
+    const promptCwd = cwd === "~" ? "~" : cwd;
+    setLines((prev) => [...prev, { text: `mbt@cyberos:${promptCwd}$ ${cmd}`, type: "command" }]);
 
-    const result = processCommand(cmd, isMobile);
+    const result = processCommand(cmd, isMobile, cwd);
+    if (result.length === 1 && result[0].text.startsWith("__CD__")) {
+      setCwd(result[0].text.replace("__CD__", ""));
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__CLOCK__") {
+      const fmt = () => {
+        const d = new Date();
+        const hh = String(d.getHours()).padStart(2, "0");
+        const mm = String(d.getMinutes()).padStart(2, "0");
+        const ss = String(d.getSeconds()).padStart(2, "0");
+        const unix = Math.floor(d.getTime() / 1000);
+        const hex = d.getTime().toString(16).toUpperCase().slice(-8);
+        return `  ◉ ${hh}:${mm}:${ss}  ·  UNIX ${unix}  ·  0x${hex}`;
+      };
+      setLines((prev) => [
+        ...prev,
+        { text: "", type: "output" },
+        { text: "  ╭─ HACKER TIME ──────────────────────────╮", type: "highlight" },
+        { text: fmt(), type: "highlight" },
+        { text: "  ╰────────────────────────────────────────╯", type: "highlight" },
+        { text: "  (mise à jour pendant 30s)", type: "system" },
+        { text: "", type: "output" },
+      ]);
+      let ticks = 0;
+      const id = setInterval(() => {
+        ticks++;
+        setLines((prev) => {
+          const next = [...prev];
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].text.startsWith("  ◉ ")) {
+              next[i] = { ...next[i], text: fmt() };
+              break;
+            }
+          }
+          return next;
+        });
+        if (ticks >= 30) clearInterval(id);
+      }, 1000);
+      return;
+    }
+    if (result.length === 1 && result[0].text === "__SUDO_RM__") {
+      const steps = [
+        "  ⚠ rm: tentative de suppression de /",
+        "  [██░░░░░░░░░░░░░░░░░░░░░░] 8% — /home/...",
+        "  [██████░░░░░░░░░░░░░░░░░░] 25% — /etc/...",
+        "  [████████████░░░░░░░░░░░░] 50% — /usr/...",
+        "  [██████████████████░░░░░░] 75% — /var/...",
+        "  [████████████████████████] 99% ...",
+        "",
+        "  ░░░ PSYCHE ░░░",
+        "  Tu pensais vraiment que ça allait marcher ? 😏",
+        "  rm: opération annulée — l'OS reste en place.",
+      ];
+      let i = 0;
+      const tick = () => {
+        if (i >= steps.length) return;
+        const t = steps[i];
+        setLines((prev) => [...prev, { text: t, type: i < 6 ? "error" : i === 7 ? "highlight" : "system" }]);
+        i++;
+        setTimeout(tick, 250);
+      };
+      setLines((prev) => [...prev, { text: "", type: "output" }]);
+      setTimeout(tick, 150);
+      return;
+    }
     if (result.length === 1 && result[0].text === "__CLEAR__") { setLines([]); return; }
     if (result.length === 1 && result[0].text === "__STATUS_LIVE__") { runStatusCommand(); return; }
     if (result.length === 1 && result[0].text.startsWith("__TRACEROUTE__")) { runTraceroute(result[0].text.replace("__TRACEROUTE__", "")); return; }
@@ -1198,7 +1389,12 @@ const Terminal = () => {
       return;
     }
     setLines((prev) => [...prev, ...result]);
-  }, [isMobile, runStatusCommand, runTraceroute, runHack, runSl, applyTheme, commandHistory]);
+    if (result.some((l) => l.type === "error")) {
+      // low buzz for errors
+      beep(180, 0.12, 0.05);
+      setTimeout(() => beep(140, 0.08, 0.05), 80);
+    }
+  }, [isMobile, cwd, runStatusCommand, runTraceroute, runHack, runSl, applyTheme, commandHistory, beep]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -1256,17 +1452,55 @@ const Terminal = () => {
     return match || "";
   }, []);
 
+  // Compute multi-matches list for visual autocomplete dropdown
+  const computeMatches = useCallback((value: string): string[] => {
+    if (!value) return [];
+    const lower = value.toLowerCase();
+    if (lower.startsWith("cat ")) {
+      const partial = lower.slice(4);
+      return FILES.filter((f) => f.startsWith(partial)).slice(0, 6).map((f) => "cat " + f);
+    }
+    if (lower.startsWith("cd ")) {
+      const partial = lower.slice(3);
+      const opts = ["~", "..", "projets"];
+      return opts.filter((o) => o.startsWith(partial)).slice(0, 6).map((o) => "cd " + o);
+    }
+    for (const hc of ["ping ", "traceroute ", "tracert "]) {
+      if (lower.startsWith(hc)) {
+        const partial = lower.slice(hc.length);
+        return SUBDOMAINS.filter((s) => s.name.startsWith(partial)).slice(0, 6).map((s) => hc + s.name);
+      }
+    }
+    if (lower.startsWith("theme ")) {
+      const partial = lower.slice(6);
+      return ["matrix", "amber", "cyan"].filter((t) => t.startsWith(partial)).map((t) => "theme " + t);
+    }
+    if (!lower.includes(" ")) {
+      return COMMANDS.filter((c) => c.startsWith(lower)).slice(0, 6);
+    }
+    return [];
+  }, []);
+
   useEffect(() => {
-    if (!input) { setSuggestion(""); return; }
+    if (!input) { setSuggestion(""); setMatches([]); setAutocompleteOpen(false); return; }
     const c = computeCompletion(input);
     setSuggestion(c && c.toLowerCase() !== input.toLowerCase() ? c : "");
-  }, [input, computeCompletion]);
+    const ms = computeMatches(input);
+    setMatches(ms);
+    // open dropdown when there is at least one match that's not already the input
+    setAutocompleteOpen(ms.length > 0 && !(ms.length === 1 && ms[0].toLowerCase() === input.toLowerCase()));
+  }, [input, computeCompletion, computeMatches]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Tab") {
         e.preventDefault();
         if (suggestion) setInput(suggestion);
+        else if (matches.length === 1) setInput(matches[0]);
+        return;
+      }
+      if (e.key === "Escape") {
+        setAutocompleteOpen(false);
         return;
       }
       if (e.key === "ArrowUp") {
@@ -1288,8 +1522,70 @@ const Terminal = () => {
         }
       }
     },
-    [commandHistory, historyIndex, suggestion]
+    [commandHistory, historyIndex, suggestion, matches]
   );
+
+  // === Random glitch on a visible line every 8–14s ===
+  useEffect(() => {
+    if (!booted) return;
+    let timeout: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const delay = 8000 + Math.random() * 6000;
+      timeout = setTimeout(() => {
+        if (document.body.classList.contains("no-effects")) { schedule(); return; }
+        setLines((prev) => {
+          if (prev.length === 0) return prev;
+          const start = Math.max(0, prev.length - 25);
+          const candidates: number[] = [];
+          for (let i = start; i < prev.length; i++) {
+            if (prev[i].text && prev[i].text.trim().length > 5) candidates.push(i);
+          }
+          if (candidates.length > 0) {
+            const idx = candidates[Math.floor(Math.random() * candidates.length)];
+            setGlitchIdx(idx);
+            setTimeout(() => setGlitchIdx(null), 450);
+          }
+          return prev;
+        });
+        schedule();
+      }, delay);
+    };
+    schedule();
+    return () => clearTimeout(timeout);
+  }, [booted]);
+
+  // === Click particles ===
+  const spawnParticles = useCallback((clientX: number, clientY: number) => {
+    if (document.body.classList.contains("no-effects")) return;
+    const rect = scrollRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top + (scrollRef.current?.scrollTop ?? 0);
+    const newOnes = Array.from({ length: 8 }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 20 + Math.random() * 30;
+      return {
+        id: ++particleIdRef.current,
+        x,
+        y,
+        dx: Math.cos(angle) * dist,
+        dy: Math.sin(angle) * dist,
+      };
+    });
+    setParticles((prev) => [...prev, ...newOnes]);
+    setTimeout(() => {
+      setParticles((prev) => prev.filter((p) => !newOnes.find((n) => n.id === p.id)));
+    }, 750);
+  }, []);
+
+  const handleScrollAreaClick = useCallback(
+    (e: React.MouseEvent) => {
+      spawnParticles(e.clientX, e.clientY);
+      handleFocusTerminal();
+    },
+    [spawnParticles, handleFocusTerminal]
+  );
+
 
   const getLineColor = (type: OutputLine["type"]) => {
     switch (type) {
@@ -1327,16 +1623,30 @@ const Terminal = () => {
 
         <div
           ref={scrollRef}
-          onClick={handleFocusTerminal}
+          onClick={handleScrollAreaClick}
           aria-live="polite"
           aria-label="Terminal output"
           role="log"
-          className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background crt-flicker cursor-text font-mono text-sm leading-relaxed"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background crt-flicker cursor-text font-mono text-sm leading-relaxed relative"
         >
+          {/* Click particles overlay */}
+          {particles.map((p) => (
+            <span
+              key={p.id}
+              className="click-particle"
+              style={{
+                left: p.x,
+                top: p.y,
+                ['--dx' as any]: `${p.dx}px`,
+                ['--dy' as any]: `${p.dy}px`,
+              }}
+            />
+          ))}
+
           {lines.map((line, i) => (
             <div
               key={i}
-              className={`${getLineColor(line.type)} whitespace-pre-wrap animate-fade-in-line`}
+              className={`${getLineColor(line.type)} whitespace-pre-wrap animate-fade-in-line ${glitchIdx === i ? "glitch-line" : ""}`}
               style={{ animationDelay: booting ? `${i * 20}ms` : "0ms" }}
             >
               {renderLineContent(line.text)}
@@ -1344,9 +1654,9 @@ const Terminal = () => {
           ))}
 
           {booted && (
-            <form onSubmit={handleSubmit} className="flex items-center mt-1">
+            <form onSubmit={handleSubmit} className="flex items-center mt-1 relative">
               <span className="text-foreground text-glow whitespace-pre">
-                mbt@cyberos:~${" "}
+                {`mbt@cyberos:${cwd}$ `}
               </span>
               <div className="relative flex-1">
                 {/* ghost suggestion */}
@@ -1363,8 +1673,20 @@ const Terminal = () => {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e) => { setInput(e.target.value); beep(720, 0.02, 0.04); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") beep(440, 0.05, 0.05); handleKeyDown(e); }}
+                  onChange={(e) => {
+                    const prev = input;
+                    const next = e.target.value;
+                    setInput(next);
+                    if (next.length < prev.length) {
+                      beep(220, 0.03, 0.04); // backspace: lower thunk
+                    } else {
+                      beep(720, 0.02, 0.04); // typing: high tick
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") beep(440, 0.05, 0.05);
+                    handleKeyDown(e);
+                  }}
                   onFocus={() => {
                     if (isMobile) {
                       setTimeout(() => {
@@ -1390,10 +1712,38 @@ const Terminal = () => {
                     opacity: 0.9,
                   }}
                 />
+
+                {/* Visual autocomplete dropdown */}
+                {autocompleteOpen && matches.length > 0 && (
+                  <ul
+                    className="autocomplete-menu absolute left-0 bottom-full mb-1 rounded-md font-mono text-xs sm:text-sm overflow-hidden z-40 min-w-[180px]"
+                    role="listbox"
+                    aria-label="Suggestions"
+                  >
+                    {matches.map((m, i) => (
+                      <li
+                        key={m}
+                        role="option"
+                        aria-selected={false}
+                        className="px-3 py-1 cursor-pointer text-foreground/90 hover:bg-foreground/10 hover:text-glow flex items-center gap-2"
+                        onMouseDown={(ev) => {
+                          ev.preventDefault();
+                          setInput(m);
+                          setAutocompleteOpen(false);
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        <span className="text-muted-foreground">{i === 0 ? "›" : " "}</span>
+                        <span>{m}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </form>
           )}
         </div>
+
 
         <div className="flex items-center justify-between px-4 py-1.5 bg-terminal-header border-t border-border text-xs text-muted-foreground font-mono">
           <span>CyberOS v3.1</span>
