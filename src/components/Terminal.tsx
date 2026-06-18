@@ -875,9 +875,15 @@ const Terminal = () => {
   const [soundOn, setSoundOn] = useState<boolean>(() => {
     try { return localStorage.getItem(SOUND_KEY) === "1"; } catch { return false; }
   });
+  const [cwd, setCwd] = useState<string>("~");
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
+  const [matches, setMatches] = useState<string[]>([]);
+  const [glitchIdx, setGlitchIdx] = useState<number | null>(null);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; dx: number; dy: number }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const particleIdRef = useRef(0);
 
   const bootSequence = useMemo(() => buildBootSequence(isMobile), [isMobile]);
 
