@@ -178,6 +178,43 @@
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
+/* === Glitch effect (random line distortion) === */
+@keyframes glitch-flash {
+  0%   { transform: translate(0); text-shadow: 0 0 8px hsl(var(--terminal-glow) / 0.6); }
+  20%  { transform: translate(-2px, 1px); text-shadow: 2px 0 hsl(var(--terminal-red) / 0.8), -2px 0 hsl(var(--terminal-glow) / 0.8); }
+  40%  { transform: translate(2px, -1px); text-shadow: -2px 0 hsl(var(--terminal-red) / 0.8), 2px 0 hsl(var(--terminal-glow) / 0.8); letter-spacing: 0.5px; }
+  60%  { transform: translate(-1px, 0); text-shadow: 1px 0 hsl(var(--terminal-red) / 0.6), -1px 0 hsl(var(--terminal-glow) / 0.6); }
+  80%  { transform: translate(1px, 1px); text-shadow: 0 0 12px hsl(var(--terminal-glow) / 0.8); }
+  100% { transform: translate(0); text-shadow: 0 0 8px hsl(var(--terminal-glow) / 0.6); }
+}
+.glitch-line { animation: glitch-flash 0.45s steps(8, end); }
+.no-effects .glitch-line { animation: none !important; }
+
+/* === Click particles === */
+.click-particle {
+  position: absolute;
+  pointer-events: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: hsl(var(--terminal-glow));
+  box-shadow: 0 0 6px hsl(var(--terminal-glow) / 0.9), 0 0 12px hsl(var(--terminal-glow) / 0.5);
+  animation: spark 0.7s ease-out forwards;
+  z-index: 60;
+}
+@keyframes spark {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.3); }
+}
+.no-effects .click-particle { display: none !important; }
+
+/* === Autocomplete menu === */
+.autocomplete-menu {
+  background: hsl(var(--terminal-bg));
+  border: 1px solid hsl(var(--terminal-glow) / 0.4);
+  box-shadow: 0 0 12px hsl(var(--terminal-glow) / 0.25);
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
