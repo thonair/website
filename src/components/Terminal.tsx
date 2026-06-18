@@ -1114,35 +1114,45 @@ const Terminal = () => {
 
     clearInterval(spinTick);
 
-    const pad = (s: string, n: number) => s + " ".repeat(Math.max(0, n - s.length));
+    const C1 = 12; // SERVICE col inner
+    const C2 = 44; // ÉTAT col inner
+    const C3 = 13; // UPTIME col inner
+    const TOTAL = C1 + 1 + C2 + 1 + C3;
     const fmtRow = (r: Row) => {
       const dot = r.up === true ? "●" : r.up === false ? "✕" : "○";
       const label = r.up === true ? "EN LIGNE" : r.up === false ? "DOWN    " : "INCONNU ";
-      const lock = r.protected ? "🔒" : "  ";
-      const upt = r.uptime !== undefined ? `${r.uptime.toFixed(2)}%` : "  —   ";
-      return `│  ${pad(r.name, 8)}  │  ${dot} ${label} — ${pad(r.host, 22)} ${lock}  │  ${pad(upt, 7)} │`;
+      const lock = r.protected ? "🔒" : "";
+      const upt = r.uptime !== undefined ? `${r.uptime.toFixed(2)}%` : "—";
+      const col1 = padV("  " + r.name, C1);
+      const col2 = padV(`  ${dot} ${label} — ${padV(r.host, 20)} ${lock}`, C2);
+      const col3 = padV("   " + upt, C3);
+      return `│${col1}│${col2}│${col3}│`;
     };
 
     const output: OutputLine[] = [
       { text: "", type: "output" },
-      { text: "┌────────────────────────────────────────────────────────────────────┐", type: "highlight" },
-      { text: "│                      ÉTAT LIVE DES SERVICES                        │", type: "highlight" },
-      { text: "├────────────┬─────────────────────────────────────────┬─────────────┤", type: "highlight" },
-      { text: "│  SERVICE   │  ÉTAT                                    │   UPTIME    │", type: "highlight" },
-      { text: "├────────────┼─────────────────────────────────────────┼─────────────┤", type: "highlight" },
+      { text: "┌" + "─".repeat(TOTAL) + "┐", type: "highlight" },
+      { text: "│" + centerV("ÉTAT LIVE DES SERVICES", TOTAL) + "│", type: "highlight" },
+      { text: "├" + "─".repeat(C1) + "┬" + "─".repeat(C2) + "┬" + "─".repeat(C3) + "┤", type: "highlight" },
+      { text: "│" + padV("  SERVICE", C1) + "│" + padV("  ÉTAT", C2) + "│" + padV("  UPTIME", C3) + "│", type: "highlight" },
+      { text: "├" + "─".repeat(C1) + "┼" + "─".repeat(C2) + "┼" + "─".repeat(C3) + "┤", type: "highlight" },
       ...rows.map((r) => ({ text: fmtRow(r), type: "output" as const })),
-      { text: "├────────────┴─────────────────────────────────────────┴─────────────┤", type: "highlight" },
+      { text: "├" + "─".repeat(C1) + "┴" + "─".repeat(C2) + "┴" + "─".repeat(C3) + "┤", type: "highlight" },
       {
         text:
-          liveSource === "kuma"
-            ? "│  📡 Source: Uptime Kuma — stats.thonair.com (live)                 │"
-            : "│  ⚠ Uptime Kuma indisponible — sondage navigateur best-effort      │",
+          "│" + padV(
+            liveSource === "kuma"
+              ? "  📡 Source: Uptime Kuma — stats.thonair.com (live)"
+              : "  ⚠ Uptime Kuma indisponible — sondage navigateur best-effort",
+            TOTAL,
+          ) + "│",
         type: "system",
       },
-      { text: "│  🔒 = Accès protégé par Cloudflare Zero Trust                      │", type: "system" },
-      { text: "└────────────────────────────────────────────────────────────────────┘", type: "highlight" },
+      { text: "│" + padV("  🔒 = Accès protégé par Cloudflare Zero Trust", TOTAL) + "│", type: "system" },
+      { text: "└" + "─".repeat(TOTAL) + "┘", type: "highlight" },
       { text: "", type: "output" },
     ];
+
 
     setLines((prev) => {
       const next = [...prev];
