@@ -1661,7 +1661,7 @@ const Terminal = () => {
               </span>
               <div className="relative flex-1">
                 {/* ghost suggestion */}
-                {suggestion && (
+                {suggestion && caretPos === input.length && (
                   <span
                     aria-hidden
                     className="absolute top-0 left-0 font-mono text-sm pointer-events-none text-muted-foreground/60 whitespace-pre"
