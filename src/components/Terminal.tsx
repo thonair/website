@@ -227,6 +227,39 @@ function resolvePath(cwd: string, arg: string): string | null {
   return stack.length === 0 ? "~" : "~/" + stack.join("/");
 }
 
+// Visual width of a string in monospace cols. Emoji & most pictographs = 2 cols.
+function visualWidth(s: string): number {
+  let w = 0;
+  for (const ch of Array.from(s)) {
+    const cp = ch.codePointAt(0)!;
+    const wide =
+      (cp >= 0x1100 && cp <= 0x115F) ||
+      (cp >= 0x2600 && cp <= 0x27BF) ||
+      (cp >= 0x2B00 && cp <= 0x2BFF) ||
+      (cp >= 0x2E80 && cp <= 0x303E) ||
+      (cp >= 0x3041 && cp <= 0x33FF) ||
+      (cp >= 0xAC00 && cp <= 0xD7A3) ||
+      (cp >= 0xF900 && cp <= 0xFAFF) ||
+      (cp >= 0xFE30 && cp <= 0xFE4F) ||
+      (cp >= 0xFF00 && cp <= 0xFF60) ||
+      (cp >= 0xFFE0 && cp <= 0xFFE6) ||
+      (cp >= 0x1F000 && cp <= 0x1FFFD);
+    w += wide ? 2 : 1;
+  }
+  return w;
+}
+
+// Pad a string to a target visual width (in monospace cols).
+function padV(s: string, n: number): string {
+  return s + " ".repeat(Math.max(0, n - visualWidth(s)));
+}
+
+// Center a string within a target visual width.
+function centerV(s: string, n: number): string {
+  const left = Math.max(0, Math.floor((n - visualWidth(s)) / 2));
+  return padV(" ".repeat(left) + s, n);
+}
+
 
 function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~"): OutputLine[] {
   let trimmed = cmd.trim().toLowerCase();
