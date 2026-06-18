@@ -328,11 +328,32 @@ function processCommand(cmd: string, mobile: boolean = false, cwd: string = "~")
       lines.push({ text: "╚══════════════════════════════════════════════════╝", type: "highlight" });
     }
     lines.push({ text: "", type: "output" });
-  } else if (trimmed === "ls") {
+  } else if (trimmed === "ls" || trimmed.startsWith("ls ")) {
+    const dir = FS_TREE[cwd];
     lines.push({ text: "", type: "output" });
-    lines.push({ text: "📁 about.txt    📁 services.txt    📁 contact.txt    📁 projets/", type: "highlight" });
-    lines.push({ text: "   projets/01.txt   projets/02.txt   projets/03.txt", type: "system" });
+    if (!dir) {
+      lines.push({ text: `  ls: ${cwd}: dossier inconnu`, type: "error" });
+    } else {
+      const parts: string[] = [];
+      dir.dirs.forEach((d) => parts.push(`📁 ${d}/`));
+      dir.files.forEach((f) => parts.push(`📄 ${f}`));
+      lines.push({ text: "  " + parts.join("    "), type: "highlight" });
+    }
     lines.push({ text: "", type: "output" });
+  } else if (trimmed === "pwd") {
+    lines.push({ text: "", type: "output" });
+    lines.push({ text: `  ${cwd}`, type: "output" });
+    lines.push({ text: "", type: "output" });
+  } else if (trimmed === "cd" || trimmed.startsWith("cd ")) {
+    const arg = trimmed === "cd" ? "~" : trimmed.slice(3).trim();
+    const target = resolvePath(cwd, arg);
+    if (target && FS_TREE[target]) {
+      return [{ text: `__CD__${target}`, type: "system" }];
+    }
+    lines.push({ text: `  cd: ${arg}: dossier introuvable`, type: "error" });
+  } else if (trimmed === "clock") {
+    return [{ text: "__CLOCK__", type: "system" }];
+
   } else if (trimmed === "cat about" || trimmed === "cat about.txt") {
     lines.push({ text: "", type: "output" });
     sectionHeader("À PROPOS DE BERA").forEach((l) => lines.push(l));
