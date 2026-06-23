@@ -1,76 +1,51 @@
-## Problème actuel
+## Goal
+Bring all npm packages to recent versions without breaking the terminal portfolio.
 
-Sur mobile, la commande `help` affiche un tableau ASCII de 52 colonnes de large (`╔═══...═══╗`). L'écran ne fait pas cette largeur, donc chaque ligne wrap et casse l'alignement des bordures `║`. Résultat: bouillie visuelle.
+## Approach
+Split the update into two waves to avoid breaking the app in one shot.
 
-Le même souci touche plusieurs autres commandes qui utilisent des cadres larges (`status`, `infra`, `whoami`, `skills`, `certifications`, encadrés `cat about/services/contact/projets`).
+### Wave 1 — Safe updates (apply now)
+Bump everything to the latest within the current major (no breaking changes expected). Covers most Radix UI packages, tanstack-query, lucide-react, react-hook-form, zod 3.x, vite 5.x, vitest 3.x, eslint 9.x, typescript, @types/*, tailwindcss 3.x, etc.
 
-## Partie 1 — Fix du `help` mobile (à implémenter)
+Action: run `bun update` for these, then verify build + a quick smoke test of the terminal (boot, a few commands, matrix rain).
 
-Dans `src/components/Terminal.tsx`, la fonction `processCommand(cmd, mobile)` reçoit déjà le flag `mobile`. Ajouter une branche dédiée pour `help` quand `mobile === true`.
+### Wave 2 — Major upgrades (opt-in, riskier)
+These require code changes and/or shadcn component rewrites. I list them so you can decide which to take:
 
-Approche: version mobile compacte sans cadre ASCII, format à deux colonnes courtes (commande + verbe) qui tient dans ~32 caractères max.
+| Package | Current | Latest | Risk |
+|---|---|---|---|
+| react / react-dom | 18.3 | 19.x | Medium — most libs OK, but some Radix/3rd-party peers may warn |
+| react-router-dom | 6.30 | 7.x | Medium — API mostly compatible, but data-router changes |
+| tailwindcss | 3.4 | 4.x | High — new engine, config format, PostCSS plugin change, shadcn theming needs rewrite |
+| vite | 5.4 | 7.x | Medium — Node 20+, plugin API tweaks |
+| zod | 3.25 | 4.x | Medium — schema API changes, breaks `@hookform/resolvers` until v5 |
+| @hookform/resolvers | 3.10 | 5.x | Needed if zod 4 |
+| date-fns | 3.6 | 4.x | Low/Medium — locale import changes |
+| sonner | 1.7 | 2.x | Low — minor API tweaks |
+| vaul | 0.9 | 1.x | Low |
+| next-themes | 0.3 | 0.4 | Low |
+| react-day-picker | 8.10 | 9.x | Medium — API rewrite, shadcn `calendar.tsx` rewrite |
+| recharts | 2.15 | 3.x | Medium — chart component API tweaks |
+| lucide-react | 0.462 | 0.4xx latest | Low — icon names rarely change |
+| jsdom | 20 | 25+ | Low (tests only) |
+| @types/node | 22 | 24 | Low |
+| tailwind-merge | 2 | 3 | Low |
+| eslint-plugin-react-hooks | 5.2 | 6.x | Low |
 
-```text
-╭─ COMMANDES ─────────────╮
-  ls            fichiers
-  cat [f]       contenu
-  whoami        identité
-  banner        logo
-  skills        compétences
-  certs         certifs
-  infra         homelab
-  network       schéma net
-  status        état live
-  ping [h]      ping host
-  traceroute    trace route
-  fortune       citation
-  date          horloge
-  neofetch      sys info
-  theme [n]     matrix/amber/cyan
-  matrix        easter egg
-  hack          port scan
-  coffee        ☕
-  clear         efface
+## Recommendation
+Do **Wave 1** now (zero risk, brings everything current within major).
+For **Wave 2**, I suggest taking only:
+- `react` 19, `react-dom` 19, `@types/react*` 19
+- `react-router-dom` 7
+- `date-fns` 4
+- `sonner` 2, `vaul` 1, `next-themes` 0.4
+- `lucide-react` latest, `tailwind-merge` 3, `jsdom` 25, `@types/node` 24
+- `eslint-plugin-react-hooks` 6
 
-  Tab = autocomplete
-  ↑/↓ = historique
-╰─────────────────────────╯
-```
+And **defer**: tailwind 4, vite 7, zod 4 (+resolvers 5), react-day-picker 9, recharts 3 — these need bigger rewrites of shadcn components / config and aren't worth the churn for this portfolio right now.
 
-Largeur cible: 28-30 colonnes, qui rentre confortablement sur un viewport de 360px en `font-mono text-sm`.
+## Verification
+After each wave: `bun run build`, load `/`, run terminal commands `help`, `homelab`, `status`, `weather`, check console for errors.
 
-## Partie 2 — Autres pistes d'amélioration (juste listées, à choisir ensuite)
-
-### Mobile / responsive
-1. **Mêmes fix mobile pour les autres commandes encadrées**: `status`, `infra`, `whoami`, `skills`, `certifications`, `cat about/services/contact/projets/NN`. Toutes ont des tableaux 52-68 colonnes qui cassent pareil.
-2. **Boot sequence mobile**: les lignes "Chargement des modules de cybersécurité .............. [OK]" sont trop longues et wrap. Raccourcir en mobile.
-3. **Détection de largeur dynamique** plutôt que juste `isMobile` booléen — adapter la largeur des cadres au viewport réel.
-4. **Auto-scroll input**: sur mobile, quand le clavier s'ouvre, scroller pour garder l'input visible.
-
-### Contenu / portfolio
-5. **CV téléchargeable** via une commande `cv` ou `download cv` (fichier PDF dans `public/`).
-6. **`projets` enrichis**: ajouter liens GitHub par projet, screenshots ASCII, dates, statut (en cours / terminé).
-7. **Commande `blog` ou `writeups`** si tu as des writeups CTF à partager.
-8. **Commande `now`** (style nownownow.com) — sur quoi tu bosses cette semaine.
-
-### Polish visuel
-9. **Effet typing char-par-char** sur les sorties courtes (whoami, fortune) pour renforcer le côté terminal.
-10. **Easter egg `sl`** (le train ASCII classique quand on tape `ls` trop vite).
-11. **Mini son optionnel** (toggle via `sound on/off`) — bip de touche + boot sound.
-12. **Curseur cliquable / sélectionnable**: actuellement le caret custom rend le copier-coller bizarre, à vérifier.
-
-### Technique / SEO
-13. **SEO**: vérifier `<title>`, meta description FR, OG tags, JSON-LD `Person` avec tes liens sociaux (le site est un portfolio, ça aide).
-14. **PWA**: manifest + service worker pour installation "ajouter à l'écran d'accueil" — cohérent avec l'esthétique terminal.
-15. **Partage de commande via URL**: `?cmd=skills` exécute la commande au boot, utile pour partager un lien direct vers une section.
-16. **Accessibilité**: ajouter un mode "lecture simple" (`accessible on`) qui désactive scanlines + flicker + matrix rain et augmente le contraste.
-
-### Détails techniques
-- Le fichier `Terminal.tsx` fait 1159 lignes, ça commence à mériter un split: extraire `commands/` (un fichier par commande ou par groupe), `data/` (SUBDOMAINS, PROJECTS, FORTUNES), `effects/` (MatrixRain est déjà séparé).
-- `processCommand` est une grosse cascade `if/else if`, un dispatch object `{ help: () => [...], ls: () => [...] }` serait plus maintenable.
-
-## Livrable de cette étape
-
-- Patch sur `Terminal.tsx` qui rend `help` lisible sur mobile (branche `mobile` dans le `if (trimmed === "help")`).
-- Aucune autre commande touchée pour le moment.
-- Tu choisis ensuite parmi les 16 pistes ci-dessus celles à enchaîner.
+## Confirm
+Reply "go" to apply Wave 1 + the recommended Wave 2 subset, or tell me which majors to include/exclude.
